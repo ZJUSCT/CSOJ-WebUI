@@ -72,6 +72,7 @@ export interface LeaderboardEntry {
   user_id: string;
   username: string;
   nickname: string;
+  avatar_url: string;
   total_score: number;
   problem_scores: Record<string, number>;
 }
