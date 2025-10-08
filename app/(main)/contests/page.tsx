@@ -11,12 +11,17 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
-import { Calendar, Clock, BookOpen, Trophy, CheckCircle } from 'lucide-react';
+import { Calendar, Clock, BookOpen, Trophy, CheckCircle, Edit3 } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import MarkdownViewer from '@/components/shared/markdown-viewer';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ResponsiveContainer, LineChart as RechartsLineChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, Line } from 'recharts';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
+import { UserProfileCard } from '@/components/shared/user-profile-card';
+import { useAuthenticatedImage } from '@/hooks/use-authenticated-image';
+import { getInitials } from '@/lib/utils';
 
 const fetcher = (url: string) => api.get(url).then(res => res.data.data);
 
@@ -168,6 +173,51 @@ function ContestTrend({ contestId }: { contestId: string }) {
     );
 }
 
+function LeaderboardRow({ entry, rank, problemIds }: { entry: LeaderboardEntry, rank: number, problemIds: string[] }) {
+    const authenticatedAvatarUrl = useAuthenticatedImage(entry.avatar_url);
+
+    const getRankColor = (rank: number) => {
+        if (rank === 1) return 'text-yellow-400';
+        if (rank === 2) return 'text-gray-400';
+        if (rank === 3) return 'text-yellow-600';
+        return '';
+    };
+
+    return (
+        <TableRow key={entry.user_id}>
+            <TableCell className={`font-medium text-lg ${getRankColor(rank)}`}>
+                <div className="flex items-center gap-2">
+                    {rank <= 3 && <Trophy className="h-5 w-5" />}
+                    {rank}
+                </div>
+            </TableCell>
+            <TableCell>
+                <HoverCard>
+                    <HoverCardTrigger asChild>
+                        <div className="flex items-center gap-3 cursor-pointer">
+                            <Avatar className="h-8 w-8">
+                                <AvatarImage src={authenticatedAvatarUrl || undefined} alt={entry.nickname} />
+                                <AvatarFallback>{getInitials(entry.nickname)}</AvatarFallback>
+                            </Avatar>
+                            <span className="font-medium">{entry.nickname}</span>
+                        </div>
+                    </HoverCardTrigger>
+                    <HoverCardContent className="w-80">
+                        <UserProfileCard userId={entry.user_id} />
+                    </HoverCardContent>
+                </HoverCard>
+            </TableCell>
+            {problemIds.map(problemId => (
+                <TableCell key={problemId} className="text-center font-mono">
+                    {entry.problem_scores[problemId] ?? '–'}
+                </TableCell>
+            ))}
+            <TableCell className="text-right font-mono text-lg">{entry.total_score}</TableCell>
+        </TableRow>
+    );
+}
+
+
 // --- UPDATED ContestLeaderboard component ---
 function ContestLeaderboard({ contestId }: { contestId: string }) {
     // Fetch contest details to get the problem IDs in order
@@ -181,13 +231,6 @@ function ContestLeaderboard({ contestId }: { contestId: string }) {
     if (!contest) return <div>Could not load contest details for leaderboard header.</div>;
 
     const problemIds = contest.problem_ids;
-
-    const getRankColor = (rank: number) => {
-        if (rank === 1) return 'text-yellow-400';
-        if (rank === 2) return 'text-gray-400';
-        if (rank === 3) return 'text-yellow-600';
-        return '';
-    };
 
     return (
         <Card>
@@ -212,21 +255,7 @@ function ContestLeaderboard({ contestId }: { contestId: string }) {
                     </TableHeader>
                     <TableBody>
                         {leaderboard.map((entry, index) => (
-                            <TableRow key={entry.user_id}>
-                                <TableCell className={`font-medium text-lg ${getRankColor(index + 1)}`}>
-                                    <div className="flex items-center gap-2">
-                                        {index < 3 && <Trophy className="h-5 w-5"/>}
-                                        {index + 1}
-                                    </div>
-                                </TableCell>
-                                <TableCell className="font-medium">{entry.nickname}</TableCell>
-                                {problemIds.map(problemId => (
-                                    <TableCell key={problemId} className="text-center font-mono">
-                                        {entry.problem_scores[problemId] ?? '–'}
-                                    </TableCell>
-                                ))}
-                                <TableCell className="text-right font-mono text-lg">{entry.total_score}</TableCell>
-                            </TableRow>
+                            <LeaderboardRow key={entry.user_id} entry={entry} rank={index + 1} problemIds={problemIds} />
                         ))}
                     </TableBody>
                 </Table>
