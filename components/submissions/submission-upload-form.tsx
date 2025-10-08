@@ -1,5 +1,3 @@
-// FILE: components/submissions/submission-upload-form.tsx
-
 "use client";
 import { useState, useCallback, useRef } from 'react';
 import { useDropzone, FileWithPath } from 'react-dropzone';
@@ -11,7 +9,6 @@ import { UploadCloud, File as FileIcon, X, Info, FolderUp, FileUp } from 'lucide
 import useSWR, { useSWRConfig } from 'swr';
 import { Attempts } from '@/lib/types';
 import { Skeleton } from '../ui/skeleton';
-import { Separator } from '../ui/separator';
 
 interface SubmissionUploadFormProps {
     problemId: string;
@@ -51,7 +48,7 @@ function AttemptsCounter({ problemId, onLimitReached }: { problemId: string, onL
 }
 
 export default function SubmissionUploadForm({ problemId, uploadLimits }: SubmissionUploadFormProps) {
-    const [files, setFiles] = useState<FileWithPath[]>([]);
+    const [files, setFiles] = useState<File[]>([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isLimitReached, setIsLimitReached] = useState(false);
     const { toast } = useToast();
@@ -82,12 +79,7 @@ export default function SubmissionUploadForm({ problemId, uploadLimits }: Submis
             return;
         }
         
-        // Add `path` property for consistency, similar to react-dropzone's FileWithPath
-        const filesWithPaths = newFiles.map(file => Object.assign(file, {
-            path: (file as any).webkitRelativePath || file.name
-        }));
-
-        setFiles(prev => [...prev, ...filesWithPaths]);
+        setFiles(prev => [...prev, ...newFiles]);
     }, [files, uploadLimits, toast]);
 
     const onDrop = useCallback((acceptedFiles: FileWithPath[]) => {
@@ -98,15 +90,17 @@ export default function SubmissionUploadForm({ problemId, uploadLimits }: Submis
         if (event.target.files) {
             addFiles(Array.from(event.target.files));
         }
+        // Reset the input value to allow selecting the same file/folder again
+        event.target.value = '';
     };
     
     const { getRootProps, isDragActive } = useDropzone({ 
         onDrop, 
-        noClick: true, // We use custom buttons, so disable click on the dropzone itself
+        noClick: true,
         noKeyboard: true 
     });
 
-    const removeFile = (fileToRemove: FileWithPath) => {
+    const removeFile = (fileToRemove: File) => {
         setFiles(files.filter(file => file !== fileToRemove));
     };
 
@@ -118,7 +112,10 @@ export default function SubmissionUploadForm({ problemId, uploadLimits }: Submis
         setIsSubmitting(true);
         const formData = new FormData();
         files.forEach(file => {
-            formData.append('files', file, file.path);
+          // Dynamically get the full path for the file.
+          // `path` comes from react-dropzone. `webkitRelativePath` comes from folder selection input. `name` is the fallback.
+          const filePath = (file as FileWithPath).path || (file as any).webkitRelativePath || file.name;
+            formData.append('files', file, filePath);
         });
 
         try {
@@ -179,18 +176,21 @@ export default function SubmissionUploadForm({ problemId, uploadLimits }: Submis
                 <div className="space-y-2">
                     <h4 className="font-semibold">Selected files:</h4>
                     <ul className="space-y-1 bg-muted p-3 rounded-md max-h-48 overflow-y-auto">
-                        {files.map((file) => (
-                            <li key={`${file.path}-${file.lastModified}`} className="flex items-center justify-between text-sm">
-                                <span className="flex items-center gap-2 truncate">
-                                    <FileIcon className="h-4 w-4 shrink-0"/>
-                                    <span className="truncate" title={file.path}>{file.path}</span> 
-                                    <span className="text-muted-foreground shrink-0">({(file.size / 1024).toFixed(2)} KB)</span>
-                                </span>
-                                <Button variant="ghost" size="icon" onClick={() => removeFile(file)} className="h-6 w-6 shrink-0">
-                                    <X className="h-4 w-4" />
-                                </Button>
-                            </li>
-                        ))}
+                        {files.map((file) => {
+                                const displayPath = (file as FileWithPath).path || (file as any).webkitRelativePath || file.name;
+                                return (
+                                <li key={`${displayPath}-${file.lastModified}`} className="flex items-center justify-between text-sm">
+                                    <span className="flex items-center gap-2 truncate">
+                                        <FileIcon className="h-4 w-4 shrink-0"/>
+                                        <span className="truncate" title={displayPath}>{displayPath}</span> 
+                                        <span className="text-muted-foreground shrink-0">({(file.size / 1024).toFixed(2)} KB)</span>
+                                    </span>
+                                    <Button variant="ghost" size="icon" onClick={() => removeFile(file)} className="h-6 w-6 shrink-0">
+                                        <X className="h-4 w-4" />
+                                    </Button>
+                                </li>
+                                );
+                            })}
                     </ul>
                 </div>
             )}
