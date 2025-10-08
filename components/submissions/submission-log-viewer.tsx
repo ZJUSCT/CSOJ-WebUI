@@ -149,17 +149,23 @@ export function SubmissionLogViewer({ submission, problem, onStatusUpdate }: Sub
     }
     
     const getWsUrl = (containerId: string | null) => {
-        if (!token || !containerId) return null;
+        if (!token || !containerId || typeof window === 'undefined') return null;
         
         const containerIndex = submission.containers.findIndex(c => c.id === containerId);
         if (containerIndex === -1 || !problem.workflow[containerIndex]?.show) {
             return null;
         }
 
-        const apiBase = process.env.NEXT_PUBLIC_API_URL || '';
-        const wsBase = apiBase.replace(/^http/, 'ws');
-        
-        return `${wsBase}/api/v1/ws/submissions/${submission.id}/containers/${containerId}/logs?token=${token}`;
+        if (process.env.NEXT_PUBLIC_API_URL) {
+        const apiBase = process.env.NEXT_PUBLIC_API_URL;
+            const wsBase = apiBase.replace(/^http/, 'ws');
+
+            return `${wsBase}/api/v1/ws/submissions/${submission.id}/containers/${containerId}/logs?token=${token}`;
+        }
+
+        const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const host = window.location.host;
+        return `${wsProtocol}//${host}/api/v1/ws/submissions/${submission.id}/containers/${containerId}/logs?token=${token}`;
     };
 
     return (
