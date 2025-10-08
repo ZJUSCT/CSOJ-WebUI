@@ -1,25 +1,26 @@
+// FILE: app/(main)/contests/page.tsx
+
 "use client";
 import { useSearchParams } from 'next/navigation';
-import { Suspense } from 'react';
-import useSWR from 'swr';
-import { Contest, Problem, LeaderboardEntry } from '@/lib/types';
+import { Suspense, useEffect, useState } from 'react';
+import useSWR, { useSWRConfig } from 'swr';
+import { Contest, Problem, LeaderboardEntry, TrendEntry, ScoreHistoryPoint } from '@/lib/types';
 import api from '@/lib/api';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
-import { Calendar, Clock, BookOpen, Trophy } from 'lucide-react';
+import { Calendar, Clock, BookOpen, Trophy, CheckCircle } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import MarkdownViewer from '@/components/shared/markdown-viewer';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { ResponsiveContainer, LineChart as RechartsLineChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, Line } from 'recharts';
 
-// FIX: Reverted the fetcher to always return a promise.
-// SWR handles conditional fetching via its first argument (the key), not by the fetcher returning null.
 const fetcher = (url: string) => api.get(url).then(res => res.data.data);
 
-// --- Sub-component for Contest List (from former contests/page.tsx) ---
+// --- ContestList (no changes) ---
 function ContestList() {
     const { data: contests, error, isLoading } = useSWR<Record<string, Contest>>('/contests', fetcher);
 
@@ -73,8 +74,8 @@ function ContestList() {
     );
 }
 
-// --- Sub-components for Contest Details (from former [contestId] route) ---
 
+// --- ProblemCard, ContestProblems, ContestTrend (no changes) ---
 function ProblemCard({ problemId }: { problemId: string }) {
     const { data: problem, isLoading } = useSWR<Problem>(`/problems/${problemId}`, fetcher);
     if (isLoading) return <Skeleton className="h-24 w-full" />;
@@ -116,30 +117,114 @@ function ContestProblems({ contestId }: { contestId: string }) {
     );
 }
 
+const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
+
+function ContestTrend({ contestId }: { contestId: string }) {
+    const { data: trendData, error, isLoading } = useSWR<TrendEntry[]>(`/contests/${contestId}/trend`, fetcher, { refreshInterval: 30000 });
+
+    if (isLoading) return <Skeleton className="h-96 w-full" />;
+    if (error) return <div>Failed to load trend data.</div>;
+    if (!trendData || trendData.length === 0) return <div>No trend data available yet.</div>;
+
+    const allTimePoints = new Set<number>();
+    trendData.forEach(user => {
+        user.history.forEach(point => {
+            allTimePoints.add(new Date(point.time).getTime());
+        });
+    });
+
+    const sortedTimePoints = Array.from(allTimePoints).sort();
+
+    const chartData = sortedTimePoints.map(time => {
+        const dataPoint: { [key: string]: any } = { time: format(new Date(time), 'HH:mm:ss') };
+        trendData.forEach(user => {
+            const lastPoint = [...user.history].reverse().find(p => new Date(p.time).getTime() <= time);
+            dataPoint[user.nickname] = lastPoint ? lastPoint.score : 0;
+        });
+        return dataPoint;
+    });
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Score Trend</CardTitle>
+                <CardDescription>Score progression of top users over time.</CardDescription>
+            </CardHeader>
+            <CardContent className="h-96 w-full">
+                <ResponsiveContainer>
+                    <RechartsLineChart data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="time" />
+                        <YAxis />
+                        <Tooltip />
+                        <Legend />
+                        {trendData.map((user, index) => (
+                            <Line key={user.user_id} type="stepAfter" dataKey={user.nickname} stroke={COLORS[index % COLORS.length]} strokeWidth={2} dot={false} />
+                        ))}
+                    </RechartsLineChart>
+                </ResponsiveContainer>
+            </CardContent>
+        </Card>
+    );
+}
+
+// --- UPDATED ContestLeaderboard component ---
 function ContestLeaderboard({ contestId }: { contestId: string }) {
-    const { data: leaderboard, error, isLoading } = useSWR<LeaderboardEntry[]>(`/contests/${contestId}/leaderboard`, fetcher, { refreshInterval: 15000 });
+    // Fetch contest details to get the problem IDs in order
+    const { data: contest, error: contestError, isLoading: isContestLoading } = useSWR<Contest>(`/contests/${contestId}`, fetcher);
+    const { data: leaderboard, error: leaderboardError, isLoading: isLeaderboardLoading } = useSWR<LeaderboardEntry[]>(`/contests/${contestId}/leaderboard`, fetcher, { refreshInterval: 15000 });
+
+    const isLoading = isContestLoading || isLeaderboardLoading;
     if (isLoading) return <Skeleton className="h-64 w-full" />;
-    if (error) return <div>Failed to load leaderboard.</div>;
+    if (contestError || leaderboardError) return <div>Failed to load leaderboard data.</div>;
     if (!leaderboard || leaderboard.length === 0) return <div>No scores recorded yet.</div>;
+    if (!contest) return <div>Could not load contest details for leaderboard header.</div>;
+
+    const problemIds = contest.problem_ids;
+
     const getRankColor = (rank: number) => {
         if (rank === 1) return 'text-yellow-400';
         if (rank === 2) return 'text-gray-400';
         if (rank === 3) return 'text-yellow-600';
         return '';
     };
+
     return (
         <Card>
-            <CardHeader><CardTitle>Leaderboard</CardTitle></CardHeader>
+            <CardHeader>
+                <CardTitle>Leaderboard</CardTitle>
+            </CardHeader>
             <CardContent>
                 <Table>
-                    <TableHeader><TableRow><TableHead className="w-[100px]">Rank</TableHead><TableHead>User</TableHead><TableHead className="text-right">Total Score</TableHead></TableRow></TableHeader>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead className="w-[80px]">Rank</TableHead>
+                            <TableHead>User</TableHead>
+                            {problemIds.map((id, index) => (
+                                <TableHead key={id} className="text-center">
+                                    <Link href={`/problems?id=${id}`} className="hover:underline" title={id}>
+                                        P{index + 1}
+                                    </Link>
+                                </TableHead>
+                            ))}
+                            <TableHead className="text-right">Total Score</TableHead>
+                        </TableRow>
+                    </TableHeader>
                     <TableBody>
                         {leaderboard.map((entry, index) => (
                             <TableRow key={entry.user_id}>
                                 <TableCell className={`font-medium text-lg ${getRankColor(index + 1)}`}>
-                                    <div className="flex items-center gap-2">{index < 3 && <Trophy className="h-5 w-5"/>}{index + 1}</div>
+                                    <div className="flex items-center gap-2">
+                                        {index < 3 && <Trophy className="h-5 w-5"/>}
+                                        {index + 1}
+                                    </div>
                                 </TableCell>
-                                <TableCell>{entry.nickname} ({entry.username})</TableCell>
+                                <TableCell className="font-medium">{entry.nickname}</TableCell>
+                                {problemIds.map(problemId => (
+                                    <TableCell key={problemId} className="text-center font-mono">
+                                        {entry.problem_scores[problemId] ?? '–'}
+                                    </TableCell>
+                                ))}
                                 <TableCell className="text-right font-mono text-lg">{entry.total_score}</TableCell>
                             </TableRow>
                         ))}
@@ -150,44 +235,73 @@ function ContestLeaderboard({ contestId }: { contestId: string }) {
     );
 }
 
+
 // --- Main Contest View with Layout Logic ---
 function ContestDetailView({ contestId, view }: { contestId: string, view: string }) {
     const { data: contest } = useSWR<Contest>(`/contests/${contestId}`, fetcher);
+    const { data: history, isLoading: isHistoryLoading } = useSWR<ScoreHistoryPoint[]>(`/contests/${contestId}/history`, fetcher);
+    const { mutate } = useSWRConfig();
     const { toast } = useToast();
+    const [isRegistered, setIsRegistered] = useState(false);
+
+    useEffect(() => {
+        if (history && history.length > 0) {
+            setIsRegistered(true);
+        } else if (history) {
+            setIsRegistered(false);
+        }
+    }, [history]);
 
     const handleRegister = async () => {
         try {
             await api.post(`/contests/${contestId}/register`);
             toast({ title: "Success", description: "You have successfully registered for the contest." });
+            mutate(`/contests/${contestId}/history`);
         } catch (error: any) {
             toast({ variant: "destructive", title: "Registration Failed", description: error.response?.data?.message || "An unexpected error occurred." });
         }
     };
+    
+    const now = new Date();
+    const canRegister = contest && now >= new Date(contest.starttime) && now <= new Date(contest.endtime);
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <h1 className="text-3xl font-bold">{contest?.name || "Contest"}</h1>
-                <Button onClick={handleRegister}>Register for Contest</Button>
+                {canRegister && (
+                    isRegistered ? (
+                        <Button disabled variant="secondary">
+                            <CheckCircle /> Registered
+                        </Button>
+                    ) : (
+                        <Button onClick={handleRegister} disabled={isHistoryLoading}>
+                            {isHistoryLoading ? "Loading..." : "Register for Contest"}
+                        </Button>
+                    )
+                )}
             </div>
             <Tabs value={view} className="w-full">
-                <TabsList>
+                <TabsList className="grid w-full grid-cols-3">
                     <TabsTrigger value="problems" asChild>
-                        <Link href={`/contests?id=${contestId}`}>Problems</Link>
+                        <Link href={`/contests?id=${contestId}&view=problems`}>Problems</Link>
                     </TabsTrigger>
                     <TabsTrigger value="leaderboard" asChild>
                         <Link href={`/contests?id=${contestId}&view=leaderboard`}>Leaderboard</Link>
                     </TabsTrigger>
+                    <TabsTrigger value="trend" asChild>
+                        <Link href={`/contests?id=${contestId}&view=trend`}>Trend</Link>
+                    </TabsTrigger>
                 </TabsList>
             </Tabs>
-            <div>
-                {view === 'leaderboard' ? <ContestLeaderboard contestId={contestId} /> : <ContestProblems contestId={contestId} />}
+            <div className="mt-6">
+                {view === 'leaderboard' ? <ContestLeaderboard contestId={contestId} /> : view === 'trend' ? <ContestTrend contestId={contestId} /> : <ContestProblems contestId={contestId} />}
             </div>
         </div>
     );
 }
 
-// --- Page Orchestrator ---
+// --- Page Orchestrator (no changes) ---
 function ContestsPageContent() {
     const searchParams = useSearchParams();
     const contestId = searchParams.get('id');

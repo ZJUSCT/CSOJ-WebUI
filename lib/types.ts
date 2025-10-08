@@ -1,3 +1,5 @@
+// FILE: lib/types.ts
+
 export type Status = "Queued" | "Running" | "Success" | "Failed";
 
 export interface User {
@@ -17,6 +19,11 @@ export interface Contest {
   description: string;
 }
 
+export interface WorkflowStep {
+  name: string;
+  show: boolean;
+}
+
 export interface Problem {
     id: string;
     name: string;
@@ -29,12 +36,13 @@ export interface Problem {
         max_num: number;
         max_size: number;
     };
-    workflow: any[]; // Define more strictly if needed
+    workflow: WorkflowStep[];
     description: string;
 }
 
 export interface Container {
   id: string;
+  submission_id: string;
   image: string;
   status: Status;
   exit_code: number;
@@ -65,4 +73,24 @@ export interface LeaderboardEntry {
   username: string;
   nickname: string;
   total_score: number;
+  problem_scores: Record<string, number>;
+}
+
+export interface ScoreHistoryPoint {
+  time: string;
+  score: number;
+  problem_id: string;
+}
+
+export interface TrendEntry {
+  user_id: string;
+  username: string;
+  nickname: string;
+  history: ScoreHistoryPoint[];
+}
+
+export interface Attempts {
+    limit: number | null;
+    used: number;
+    remaining: number | null;
 }
