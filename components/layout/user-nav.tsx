@@ -14,10 +14,13 @@ import { useAuth } from "@/hooks/use-auth";
 import { getInitials } from "@/lib/utils";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useAuthenticatedImage } from "@/hooks/use-authenticated-image"; // 1. Import the hook
 
 export function UserNav() {
   const { user, logout } = useAuth();
   const router = useRouter();
+  
+  const authenticatedAvatarUrl = useAuthenticatedImage(user?.avatar_url);
 
   const handleLogout = () => {
     logout();
@@ -33,7 +36,7 @@ export function UserNav() {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
           <Avatar className="h-9 w-9">
-            <AvatarImage src={user.avatar_url} alt={user.nickname} />
+            <AvatarImage key={authenticatedAvatarUrl} src={authenticatedAvatarUrl || undefined} alt={user.nickname} />
             <AvatarFallback>{getInitials(user.nickname)}</AvatarFallback>
           </Avatar>
         </Button>
