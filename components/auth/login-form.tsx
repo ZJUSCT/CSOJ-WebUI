@@ -24,6 +24,8 @@ import { useAuth } from "@/hooks/use-auth";
 import api from "@/lib/api";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
+import { Separator } from "../ui/separator";
+import { SiGitlab } from "react-icons/si";
 
 const formSchema = z.object({
   username: z.string().min(1, "Username is required"),
@@ -34,6 +36,7 @@ export function LoginForm() {
   const { login } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
+  const gitlabLoginUrl = `${process.env.NEXT_PUBLIC_API_URL || ""}/api/v1/auth/gitlab/login`;
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -108,6 +111,25 @@ export function LoginForm() {
             </Button>
           </form>
         </Form>
+
+        <div className="relative my-4">
+            <div className="absolute inset-0 flex items-center">
+                <Separator />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-card px-2 text-muted-foreground">
+                Or continue with
+                </span>
+            </div>
+        </div>
+
+        <Button variant="outline" className="w-full" asChild>
+            <a href={gitlabLoginUrl}>
+                <SiGitlab className="mr-2 h-4 w-4" />
+                Login with GitLab
+            </a>
+        </Button>
+
         <div className="mt-4 text-center text-sm">
           Don&apos;t have an account?{" "}
           <Link href="/register" className="underline">
