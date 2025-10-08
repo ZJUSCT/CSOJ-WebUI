@@ -15,7 +15,6 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { getInitials } from '@/lib/utils';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuthenticatedImage } from '@/hooks/use-authenticated-image'; // 1. Import the hook
 
 const profileSchema = z.object({
   nickname: z.string().min(1, 'Nickname is required').max(50),
@@ -27,9 +26,6 @@ export default function ProfilePage() {
     const { toast } = useToast();
     const router = useRouter();
     const [isUploading, setIsUploading] = useState(false);
-
-    // 2. Use the hook here as well
-    const authenticatedAvatarUrl = useAuthenticatedImage(user?.avatar_url);
 
     const form = useForm<z.infer<typeof profileSchema>>({
         resolver: zodResolver(profileSchema),
@@ -98,7 +94,7 @@ export default function ProfilePage() {
                 </CardHeader>
                 <CardContent className="flex flex-col items-center gap-4">
                     <Avatar className="h-32 w-32">
-                        <AvatarImage key={authenticatedAvatarUrl} src={authenticatedAvatarUrl || undefined} alt={user.nickname} />
+                        <AvatarImage src={user.avatar_url} alt={user.nickname} />
                         <AvatarFallback>{getInitials(user.nickname)}</AvatarFallback>
                     </Avatar>
                     <Input id="avatar-upload" type="file" accept="image/*" onChange={handleAvatarUpload} className="hidden" />
