@@ -9,7 +9,7 @@ export function MainNav({ className, ...props }: React.HTMLAttributes<HTMLElemen
 
   const routes = [
     { href: "/contests", label: "Contests" },
-    { href: "/submissions", label: "My Submissions" },
+    { href: "/submissions", label: "Submissions" },
     { href: "/profile", label: "Profile" },
   ];
 

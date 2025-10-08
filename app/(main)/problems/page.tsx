@@ -1,5 +1,5 @@
 "use client";
-import { useParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import useSWR from 'swr';
 import api from '@/lib/api';
 import { Problem, Submission } from '@/lib/types';
@@ -11,6 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
 import Link from 'next/link';
+import { Suspense } from 'react';
 
 const fetcher = (url: string) => api.get(url).then(res => res.data.data);
 
@@ -39,7 +40,7 @@ function UserSubmissionsForProblem({ problemId }: { problemId: string }) {
                 {problemSubmissions.map(sub => (
                     <TableRow key={sub.id}>
                         <TableCell>
-                            <Link href={`/submissions/${sub.id}`} className="font-mono text-primary hover:underline">
+                            <Link href={`/submissions?id=${sub.id}`} className="font-mono text-primary hover:underline">
                                 {sub.id.substring(0, 8)}...
                             </Link>
                         </TableCell>
@@ -53,11 +54,15 @@ function UserSubmissionsForProblem({ problemId }: { problemId: string }) {
     );
 }
 
-export default function ProblemDetailsPage() {
-    const params = useParams();
-    const problemId = params.problemId as string;
-    const { data: problem, error, isLoading } = useSWR<Problem>(`/problems/${problemId}`, fetcher);
+function ProblemDetails() {
+    const searchParams = useSearchParams();
+    const problemId = searchParams.get('id');
+    const { data: problem, error, isLoading } = useSWR<Problem>(problemId ? `/problems/${problemId}` : null, fetcher);
 
+    if (!problemId) {
+        return <Card><CardHeader><CardTitle>No Problem Selected</CardTitle><CardDescription>Please select a problem to view its details.</CardDescription></CardHeader></Card>;
+    }
+    
     if (isLoading) return <div><Skeleton className="h-screen w-full" /></div>;
     if (error) return <div>Failed to load problem. You may not have access to it yet.</div>;
     if (!problem) return <div>Problem not found.</div>;
@@ -71,12 +76,12 @@ export default function ProblemDetailsPage() {
                         <CardDescription>Problem ID: {problem.id}</CardDescription>
                     </CardHeader>
                     <CardContent>
-                         <MarkdownViewer content={problem.description} />
+                        <MarkdownViewer content={problem.description} />
                     </CardContent>
                 </Card>
             </div>
             <div className="space-y-6">
-                 <Card>
+                <Card>
                     <CardHeader>
                         <CardTitle>Submit Solution</CardTitle>
                     </CardHeader>
@@ -84,7 +89,7 @@ export default function ProblemDetailsPage() {
                         <SubmissionUploadForm problemId={problem.id} uploadLimits={problem.upload} />
                     </CardContent>
                 </Card>
-                 <Card>
+                <Card>
                     <CardHeader>
                         <CardTitle>Your Submissions</CardTitle>
                     </CardHeader>
@@ -94,5 +99,14 @@ export default function ProblemDetailsPage() {
                 </Card>
             </div>
         </div>
+    );
+}
+
+// Using Suspense to handle client-side-only query parameter reading
+export default function ProblemDetailsPage() {
+    return (
+        <Suspense fallback={<div><Skeleton className="h-screen w-full" /></div>}>
+            <ProblemDetails />
+        </Suspense>
     );
 }
