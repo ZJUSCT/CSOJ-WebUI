@@ -3,7 +3,6 @@
 import useSWR from 'swr';
 import api from '@/lib/api';
 import { User } from '@/lib/types';
-import { useAuthenticatedImage } from '@/hooks/use-authenticated-image';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { getInitials } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -17,7 +16,6 @@ interface UserProfileCardProps {
 
 export function UserProfileCard({ userId }: UserProfileCardProps) {
     const { data: user, error, isLoading } = useSWR<User>(`/users/${userId}`, fetcher);
-    const authenticatedAvatarUrl = useAuthenticatedImage(user?.avatar_url);
 
     if (isLoading) return <UserProfileCardSkeleton />;
     if (error || !user) return <div className="text-sm text-destructive">Could not load user profile.</div>;
@@ -26,7 +24,7 @@ export function UserProfileCard({ userId }: UserProfileCardProps) {
         <div className="flex flex-col gap-4">
             <div className="flex items-center gap-4">
                 <Avatar className="h-16 w-16">
-                    <AvatarImage src={authenticatedAvatarUrl || undefined} alt={user.nickname} />
+                    <AvatarImage src={user.avatar_url} alt={user.nickname} />
                     <AvatarFallback>{getInitials(user.nickname)}</AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col">

@@ -20,7 +20,6 @@ import { ResponsiveContainer, LineChart as RechartsLineChart, CartesianGrid, XAx
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import { UserProfileCard } from '@/components/shared/user-profile-card';
-import { useAuthenticatedImage } from '@/hooks/use-authenticated-image';
 import { getInitials } from '@/lib/utils';
 
 const fetcher = (url: string) => api.get(url).then(res => res.data.data);
@@ -174,7 +173,6 @@ function ContestTrend({ contestId }: { contestId: string }) {
 }
 
 function LeaderboardRow({ entry, rank, problemIds }: { entry: LeaderboardEntry, rank: number, problemIds: string[] }) {
-    const authenticatedAvatarUrl = useAuthenticatedImage(entry.avatar_url);
 
     const getRankColor = (rank: number) => {
         if (rank === 1) return 'text-yellow-400';
@@ -196,7 +194,7 @@ function LeaderboardRow({ entry, rank, problemIds }: { entry: LeaderboardEntry, 
                     <HoverCardTrigger asChild>
                         <div className="flex items-center gap-3 cursor-pointer">
                             <Avatar className="h-8 w-8">
-                                <AvatarImage src={authenticatedAvatarUrl || undefined} alt={entry.nickname} />
+                                <AvatarImage src={entry.avatar_url} alt={entry.nickname} />
                                 <AvatarFallback>{getInitials(entry.nickname)}</AvatarFallback>
                             </Avatar>
                             <span className="font-medium">{entry.nickname}</span>
