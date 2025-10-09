@@ -1,5 +1,3 @@
-// FILE: app/(main)/contests/page.tsx
-
 "use client";
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
@@ -79,7 +77,7 @@ function ContestList() {
 }
 
 
-// --- ProblemCard, ContestProblems, ContestTrend (no changes) ---
+// --- ProblemCard, ContestTrend (no changes) ---
 function ProblemCard({ problemId }: { problemId: string }) {
     const { data: problem, isLoading } = useSWR<Problem>(`/problems/${problemId}`, fetcher);
     if (isLoading) return <Skeleton className="h-24 w-full" />;
@@ -106,7 +104,13 @@ function ContestProblems({ contestId }: { contestId: string }) {
         <div className="space-y-6">
             <Card>
                 <CardHeader><CardTitle>Contest Description</CardTitle></CardHeader>
-                <CardContent><MarkdownViewer content={contest.description} /></CardContent>
+                <CardContent>
+                    <MarkdownViewer 
+                        content={contest.description} 
+                        assetContext="contest"
+                        assetContextId={contest.id}
+                    />
+                </CardContent>
             </Card>
             <Card>
                 <CardHeader>

@@ -76,7 +76,11 @@ function ProblemDetails() {
                         <CardDescription>Problem ID: {problem.id}</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <MarkdownViewer content={problem.description} />
+                        <MarkdownViewer 
+                            content={problem.description}
+                            assetContext="problem"
+                            assetContextId={problem.id}
+                        />
                     </CardContent>
                 </Card>
             </div>
