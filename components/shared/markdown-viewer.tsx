@@ -6,6 +6,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { Loader2, AlertCircle } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 interface MarkdownViewerProps {
     content: string;
@@ -13,7 +14,7 @@ interface MarkdownViewerProps {
     assetContextId?: string;
 }
 
-// Custom Hook to fetch a protected asset and return a blob URL
+// Custom Hook to fetch a protected asset and return a blob URL (for images on mount)
 const useAuthenticatedAsset = (apiUrl: string | null) => {
     const [assetUrl, setAssetUrl] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -64,7 +65,7 @@ const useAuthenticatedAsset = (apiUrl: string | null) => {
     return { assetUrl, isLoading, error };
 };
 
-// Component to display the authenticated image
+// Component to display the authenticated image (Working correctly)
 const AuthenticatedImage = ({ apiUrl, ...props }: { apiUrl: string; [key: string]: any }) => {
     const { assetUrl, isLoading, error } = useAuthenticatedAsset(apiUrl);
 
@@ -80,17 +81,66 @@ const AuthenticatedImage = ({ apiUrl, ...props }: { apiUrl: string; [key: string
     return <img src={assetUrl} {...props} alt={props.alt || ''} />;
 };
 
-// Component to create a downloadable link for an authenticated asset
 const AuthenticatedLink = ({ apiUrl, children, ...props }: { apiUrl: string; children: React.ReactNode; [key: string]: any }) => {
-    const { assetUrl, isLoading, error } = useAuthenticatedAsset(apiUrl);
+    const [isDownloading, setIsDownloading] = useState(false);
+    const { toast } = useToast();
 
-    // Try to get a filename from the original href
-    const filename = props.href?.split('/').pop();
+    const handleDownloadClick = async (event: React.MouseEvent<HTMLAnchorElement>) => {
+        event.preventDefault();
+        if (isDownloading) return;
 
-    if (isLoading) return <span className={cn('inline-flex items-center', props.className)}><Loader2 className="mr-2 h-4 w-4 animate-spin" /> {children}</span>;
-    if (error || !assetUrl) return <span className={cn('text-destructive', props.className)}>{children} [Failed to load]</span>;
+        setIsDownloading(true);
+        try {
+            const response = await api.get(apiUrl, { responseType: 'blob' });
+            const blob = new Blob([response.data]);
+            
+            // Create a temporary link to trigger the download
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
 
-    return <a href={assetUrl} download={filename || true} {...props}>{children}</a>;
+            // Attempt to get a filename from Content-Disposition header, falling back to URL parsing
+            const contentDisposition = response.headers['content-disposition'];
+            let filename = props.href?.split('/').pop() || 'download'; // Fallback filename
+            if (contentDisposition) {
+                const filenameMatch = contentDisposition.match(/filename="?(.+?)"?$/);
+                if (filenameMatch && filenameMatch.length > 1) {
+                    filename = filenameMatch[1];
+                }
+            }
+            link.setAttribute('download', filename);
+
+            document.body.appendChild(link);
+            link.click();
+            
+            // Clean up the temporary link and object URL
+            link.remove();
+            window.URL.revokeObjectURL(url);
+
+        } catch (error) {
+            console.error('Download failed:', error);
+            toast({
+                variant: "destructive",
+                title: "Download Failed",
+                description: "Could not download the requested file.",
+            });
+        } finally {
+            setIsDownloading(false);
+        }
+    };
+
+    return (
+        <a href={apiUrl} onClick={handleDownloadClick} {...props}>
+            {isDownloading ? (
+                <span className="inline-flex items-center">
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    {children}
+                </span>
+            ) : (
+                children
+            )}
+        </a>
+    );
 };
 
 // Main Markdown Viewer component
@@ -106,8 +156,6 @@ export default function MarkdownViewer({ content, assetContext, assetContextId }
 
     const components = {
         img: ({ node, ...props }: any) => {
-            // After urlTransform, props.src is the API path.
-            // We destructure it out to prevent it from being passed down and overriding the blob src.
             const { src, ...rest } = props;
             if (src && src.startsWith('/assets/')) {
                 return <AuthenticatedImage apiUrl={src} {...rest} />;
@@ -120,10 +168,11 @@ export default function MarkdownViewer({ content, assetContext, assetContextId }
             
             // After urlTransform, href is the API path for assets
             if (href && href.startsWith('/assets/')) {
+                // Pass the original href to help determine the filename
                 return <AuthenticatedLink apiUrl={href} href={node.properties.href} {...rest}>{children}</AuthenticatedLink>;
             }
 
-            // Let Next.js handle internal links. Use the original href to avoid issues.
+            // Let Next.js handle internal links. Use the original href.
             const originalHref = node.properties.href;
             if (originalHref && !/^(https?|mailto|tel):/.test(originalHref)) {
                 return <Link href={originalHref} {...rest}>{children}</Link>;
