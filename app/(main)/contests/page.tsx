@@ -14,15 +14,15 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import MarkdownViewer from '@/components/shared/markdown-viewer';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ResponsiveContainer, LineChart as RechartsLineChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, Line } from 'recharts';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import { UserProfileCard } from '@/components/shared/user-profile-card';
 import { getInitials } from '@/lib/utils';
+import EchartsTrendChart from '@/components/charts/echarts-trend-chart';
 
 const fetcher = (url: string) => api.get(url).then(res => res.data.data);
 
-// --- ContestList (no changes) ---
+// --- ContestList ---
 function ContestList() {
     const { data: contests, error, isLoading } = useSWR<Record<string, Contest>>('/contests', fetcher);
 
@@ -125,32 +125,12 @@ function ContestProblems({ contestId }: { contestId: string }) {
     );
 }
 
-const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
-
 function ContestTrend({ contestId }: { contestId: string }) {
     const { data: trendData, error, isLoading } = useSWR<TrendEntry[]>(`/contests/${contestId}/trend`, fetcher, { refreshInterval: 30000 });
 
     if (isLoading) return <Skeleton className="h-96 w-full" />;
     if (error) return <div>Failed to load trend data.</div>;
     if (!trendData || trendData.length === 0) return <div>No trend data available yet.</div>;
-
-    const allTimePoints = new Set<number>();
-    trendData.forEach(user => {
-        user.history.forEach(point => {
-            allTimePoints.add(new Date(point.time).getTime());
-        });
-    });
-
-    const sortedTimePoints = Array.from(allTimePoints).sort();
-
-    const chartData = sortedTimePoints.map(time => {
-        const dataPoint: { [key: string]: any } = { time: format(new Date(time), 'HH:mm:ss') };
-        trendData.forEach(user => {
-            const lastPoint = [...user.history].reverse().find(p => new Date(p.time).getTime() <= time);
-            dataPoint[user.nickname] = lastPoint ? lastPoint.score : 0;
-        });
-        return dataPoint;
-    });
 
     return (
         <Card>
@@ -159,18 +139,7 @@ function ContestTrend({ contestId }: { contestId: string }) {
                 <CardDescription>Score progression of top users over time.</CardDescription>
             </CardHeader>
             <CardContent className="h-96 w-full">
-                <ResponsiveContainer>
-                    <RechartsLineChart data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="time" />
-                        <YAxis />
-                        <Tooltip />
-                        <Legend />
-                        {trendData.map((user, index) => (
-                            <Line key={user.user_id} type="stepAfter" dataKey={user.nickname} stroke={COLORS[index % COLORS.length]} strokeWidth={2} dot={false} />
-                        ))}
-                    </RechartsLineChart>
-                </ResponsiveContainer>
+                <EchartsTrendChart trendData={trendData} />
             </CardContent>
         </Card>
     );
@@ -220,7 +189,7 @@ function LeaderboardRow({ entry, rank, problemIds }: { entry: LeaderboardEntry, 
 }
 
 
-// --- UPDATED ContestLeaderboard component ---
+// --- ContestLeaderboard component ---
 function ContestLeaderboard({ contestId }: { contestId: string }) {
     // Fetch contest details to get the problem IDs in order
     const { data: contest, error: contestError, isLoading: isContestLoading } = useSWR<Contest>(`/contests/${contestId}`, fetcher);
@@ -292,7 +261,7 @@ function ContestDetailView({ contestId, view }: { contestId: string, view: strin
             toast({ variant: "destructive", title: "Registration Failed", description: error.response?.data?.message || "An unexpected error occurred." });
         }
     };
-    
+   
     const now = new Date();
     const canRegister = contest && now >= new Date(contest.starttime) && now <= new Date(contest.endtime);
 
@@ -313,20 +282,24 @@ function ContestDetailView({ contestId, view }: { contestId: string, view: strin
                 )}
             </div>
             <Tabs value={view} className="w-full">
-                <TabsList className="grid w-full grid-cols-3">
+                <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="problems" asChild>
                         <Link href={`/contests?id=${contestId}&view=problems`}>Problems</Link>
                     </TabsTrigger>
                     <TabsTrigger value="leaderboard" asChild>
                         <Link href={`/contests?id=${contestId}&view=leaderboard`}>Leaderboard</Link>
                     </TabsTrigger>
-                    <TabsTrigger value="trend" asChild>
-                        <Link href={`/contests?id=${contestId}&view=trend`}>Trend</Link>
-                    </TabsTrigger>
                 </TabsList>
             </Tabs>
             <div className="mt-6">
-                {view === 'leaderboard' ? <ContestLeaderboard contestId={contestId} /> : view === 'trend' ? <ContestTrend contestId={contestId} /> : <ContestProblems contestId={contestId} />}
+                {view === 'leaderboard' ? (
+                  <div className="space-y-6">
+                    <ContestTrend contestId={contestId} />
+                    <ContestLeaderboard contestId={contestId} />
+                  </div>
+                ) : (
+                  <ContestProblems contestId={contestId} />
+                )}
             </div>
         </div>
     );

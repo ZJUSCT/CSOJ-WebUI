@@ -178,13 +178,6 @@ export function SubmissionLogViewer({ submission, problem, onStatusUpdate }: Sub
             return null;
         }
 
-        if (process.env.NEXT_PUBLIC_API_URL) {
-        const apiBase = process.env.NEXT_PUBLIC_API_URL;
-            const wsBase = apiBase.replace(/^http/, 'ws');
-
-            return `${wsBase}/api/v1/ws/submissions/${submission.id}/containers/${containerId}/logs?token=${token}`;
-        }
-
         const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
         const host = window.location.host;
         return `${wsProtocol}//${host}/api/v1/ws/submissions/${submission.id}/containers/${containerId}/logs?token=${token}`;

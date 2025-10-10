@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { SWRProvider } from "@/providers/swr-provider";
 import { AuthProvider } from "@/providers/auth-provider";
 import { Toaster } from "@/components/ui/toaster";
+import { ThemeProvider } from "@/providers/theme-provider";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -26,10 +27,16 @@ export default function RootLayout({
           inter.variable
         )}
       >
-        <AuthProvider>
-          <SWRProvider>{children}</SWRProvider>
-        </AuthProvider>
-        <Toaster />
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+        >
+          <AuthProvider>
+            <SWRProvider>{children}</SWRProvider>
+          </AuthProvider>
+          <Toaster />
+        </ThemeProvider>
       </body>
     </html>
   );

@@ -36,7 +36,7 @@ export function LoginForm() {
   const { login } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
-  const gitlabLoginUrl = `${process.env.NEXT_PUBLIC_API_URL || ""}/api/v1/auth/gitlab/login`;
+  const gitlabLoginUrl = `/api/v1/auth/gitlab/login`;
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
