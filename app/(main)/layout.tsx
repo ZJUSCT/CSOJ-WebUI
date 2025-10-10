@@ -2,6 +2,7 @@
 import withAuth from "@/components/layout/with-auth";
 import { MainNav } from "@/components/layout/main-nav";
 import { UserNav } from "@/components/layout/user-nav";
+import { ThemeToggle } from "@/components/layout/theme-toggle";
 
 function MainLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -11,6 +12,7 @@ function MainLayout({ children }: { children: React.ReactNode }) {
         <div className="flex w-full items-center gap-4 md:ml-auto md:gap-2 lg:gap-4">
           <div className="ml-auto flex-1 sm:flex-initial">
           </div>
+          <ThemeToggle />
           <UserNav />
         </div>
       </header>
