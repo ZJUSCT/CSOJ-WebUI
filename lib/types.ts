@@ -95,3 +95,8 @@ export interface Attempts {
     used: number;
     remaining: number | null;
 }
+
+export interface LinkItem {
+    name: string;
+    url: string;
+}
