@@ -1,4 +1,3 @@
-// components/charts/echarts-trend-chart.tsx
 "use client";
 
 import ReactECharts from 'echarts-for-react';
@@ -15,15 +14,20 @@ interface EchartsTrendChartProps {
 const EchartsTrendChart: React.FC<EchartsTrendChartProps> = ({ trendData }) => {
     const { theme } = useTheme();
 
+    const truncateToMinute = (timestamp: number): number => {
+        const date = new Date(timestamp);
+        date.setSeconds(0, 0);
+        return date.getTime();
+    };
+
     const allTimePoints = new Set<number>();
     trendData.forEach(user => {
         user.history.forEach(point => {
-            allTimePoints.add(new Date(point.time).getTime());
+            allTimePoints.add(truncateToMinute(new Date(point.time).getTime()));
         });
     });
 
-    // Add the current time to the set to extend the axis to now
-    allTimePoints.add(new Date().getTime());
+    allTimePoints.add(truncateToMinute(new Date().getTime()));
 
     const sortedTimePoints = Array.from(allTimePoints).sort((a, b) => a - b);
 
