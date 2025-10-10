@@ -261,7 +261,7 @@ function ContestDetailView({ contestId, view }: { contestId: string, view: strin
             toast({ variant: "destructive", title: "Registration Failed", description: error.response?.data?.message || "An unexpected error occurred." });
         }
     };
-    
+   
     const now = new Date();
     const canRegister = contest && now >= new Date(contest.starttime) && now <= new Date(contest.endtime);
 
@@ -282,20 +282,24 @@ function ContestDetailView({ contestId, view }: { contestId: string, view: strin
                 )}
             </div>
             <Tabs value={view} className="w-full">
-                <TabsList className="grid w-full grid-cols-3">
+                <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="problems" asChild>
                         <Link href={`/contests?id=${contestId}&view=problems`}>Problems</Link>
                     </TabsTrigger>
                     <TabsTrigger value="leaderboard" asChild>
                         <Link href={`/contests?id=${contestId}&view=leaderboard`}>Leaderboard</Link>
                     </TabsTrigger>
-                    <TabsTrigger value="trend" asChild>
-                        <Link href={`/contests?id=${contestId}&view=trend`}>Trend</Link>
-                    </TabsTrigger>
                 </TabsList>
             </Tabs>
             <div className="mt-6">
-                {view === 'leaderboard' ? <ContestLeaderboard contestId={contestId} /> : view === 'trend' ? <ContestTrend contestId={contestId} /> : <ContestProblems contestId={contestId} />}
+                {view === 'leaderboard' ? (
+                  <div className="space-y-6">
+                    <ContestTrend contestId={contestId} />
+                    <ContestLeaderboard contestId={contestId} />
+                  </div>
+                ) : (
+                  <ContestProblems contestId={contestId} />
+                )}
             </div>
         </div>
     );
