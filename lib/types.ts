@@ -1,5 +1,3 @@
-// FILE: lib/types.ts
-
 export type Status = "Queued" | "Running" | "Success" | "Failed";
 
 export interface User {
@@ -35,6 +33,8 @@ export interface Problem {
     upload: {
         max_num: number;
         max_size: number;
+        editor?: boolean;
+        editor_files?: string[];
     };
     workflow: WorkflowStep[];
     description: string;
