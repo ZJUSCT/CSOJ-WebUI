@@ -10,7 +10,6 @@ function MainLayout({ children }: { children: React.ReactNode }) {
         <MainNav />
         <div className="flex w-full items-center gap-4 md:ml-auto md:gap-2 lg:gap-4">
           <div className="ml-auto flex-1 sm:flex-initial">
-             {/* Future search bar can go here */}
           </div>
           <UserNav />
         </div>
@@ -18,6 +17,28 @@ function MainLayout({ children }: { children: React.ReactNode }) {
       <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
         {children}
       </main>
+      <footer className="mt-auto border-t py-4">
+        <div className="container mx-auto text-center text-sm text-muted-foreground">
+          Powered by{" "}
+          <a
+            href="https://github.com/ZJUSCT/CSOJ"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-medium text-primary underline-offset-4 hover:underline"
+          >
+            ZJUSCT/CSOJ
+          </a>{" "}
+          &{" "}
+          <a
+            href="https://github.com/ZJUSCT/CSOJ-WebUI"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-medium text-primary underline-offset-4 hover:underline"
+          >
+            ZJUSCT/CSOJ-WebUI
+          </a>
+        </div>
+      </footer>
     </div>
   );
 }

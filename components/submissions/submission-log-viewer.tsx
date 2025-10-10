@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import useWebSocket, { ReadyState } from 'react-use-websocket';
 import { useAuth } from '@/hooks/use-auth';
 import { Problem, Submission, Container } from '@/lib/types';
@@ -8,25 +8,41 @@ import useSWR from 'swr';
 import api from '@/lib/api';
 import { Skeleton } from '../ui/skeleton';
 
+interface LogMessage {
+    stream: 'stdout' | 'stderr' | 'info' | 'error';
+    data: string;
+}
+
 // --- Sub-component for displaying static logs of finished containers ---
 const StaticLogViewer = ({ submissionId, containerId }: { submissionId: string, containerId: string }) => {
-    // A simple text fetcher for SWR, as the log API returns plain text.
     const textFetcher = (url: string) => api.get(url, { responseType: 'text' }).then(res => res.data);
-    
     const { data: logText, error, isLoading } = useSWR(`/submissions/${submissionId}/containers/${containerId}/log`, textFetcher);
-
     const logContainerRef = useRef<HTMLDivElement>(null);
 
-    // Scroll to bottom on initial load
+    const messages: LogMessage[] = useMemo(() => {
+        if (!logText) return [];
+        return logText
+            .split('\n')
+            .filter((line: string) => line.trim() !== '')
+            .map((line: string) => {
+                try {
+                    return JSON.parse(line) as LogMessage;
+                } catch (e) {
+                    console.error("Failed to parse log line as JSON:", line);
+                    return { stream: 'stdout', data: line };
+                }
+            });
+    }, [logText]);
+
     useEffect(() => {
         if (logContainerRef.current) {
             logContainerRef.current.scrollTop = logContainerRef.current.scrollHeight;
         }
-    }, [logText]);
+    }, [messages]);
 
     return (
         <div className="relative">
-            <div className="absolute top-2 right-2 text-xs font-semibold flex items-center gap-2 z-10">
+            <div className="absolute top-2 right-6 text-xs font-semibold flex items-center gap-2 z-10">
                 <span className="h-2 w-2 rounded-full bg-gray-400"></span>
                 Finished
             </div>
@@ -36,18 +52,24 @@ const StaticLogViewer = ({ submissionId, containerId }: { submissionId: string, 
             >
                 {isLoading && <Skeleton className="h-full w-full" />}
                 {error && <p className="text-red-400">Failed to load log.</p>}
-                {logText && <pre className="whitespace-pre-wrap break-all">{logText}</pre>}
+                {messages.length > 0 && messages.map((msg, index) => (
+                    <span key={index} className="whitespace-pre-wrap break-all">
+                        {msg.stream === 'stderr' || msg.stream === 'error' ? (
+                            <span className="text-red-400">{msg.data}</span>
+                        ) : msg.stream === 'info' ? (
+                            <span className="text-blue-400">{msg.data}</span>
+                        ) : (
+                            <span className="text-foreground">{msg.data}</span>
+                        )}
+                    </span>
+                ))}
             </div>
         </div>
     );
 };
 
-// --- Sub-component for streaming real-time logs via WebSocket ---
-interface LogMessage {
-    stream: 'stdout' | 'stderr' | 'info' | 'error';
-    data: string;
-}
 
+// --- Sub-component for streaming real-time logs via WebSocket ---
 const RealtimeLogViewer = ({ wsUrl, onStatusUpdate }: { wsUrl: string | null, onStatusUpdate: () => void }) => {
     const [messages, setMessages] = useState<LogMessage[]>([]);
     const logContainerRef = useRef<HTMLDivElement>(null);
@@ -92,7 +114,7 @@ const RealtimeLogViewer = ({ wsUrl, onStatusUpdate }: { wsUrl: string | null, on
 
     return (
         <div className="relative">
-            <div className="absolute top-2 right-2 text-xs font-semibold flex items-center gap-2 z-10">
+            <div className="absolute top-2 right-6 text-xs font-semibold flex items-center gap-2 z-10">
                 <span className={`h-2 w-2 rounded-full ${connectionStatus.color}`}></span>
                 {connectionStatus.text}
             </div>
@@ -102,7 +124,7 @@ const RealtimeLogViewer = ({ wsUrl, onStatusUpdate }: { wsUrl: string | null, on
             >
                 {messages.length === 0 && <p className="text-muted-foreground">Waiting for judge output...</p>}
                 {messages.map((msg, index) => (
-                    <div key={index} className="whitespace-pre-wrap break-all">
+                    <span key={index} className="whitespace-pre-wrap break-all">
                         {msg.stream === 'stderr' || msg.stream === 'error' ? (
                             <span className="text-red-400">{msg.data}</span>
                         ) : msg.stream === 'info' ? (
@@ -110,7 +132,7 @@ const RealtimeLogViewer = ({ wsUrl, onStatusUpdate }: { wsUrl: string | null, on
                         ) : (
                             <span className="text-foreground">{msg.data}</span>
                         )}
-                    </div>
+                    </span>
                 ))}
             </div>
         </div>
