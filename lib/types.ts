@@ -96,6 +96,10 @@ export interface Attempts {
     remaining: number | null;
 }
 
+export interface AuthStatus {
+  local_auth_enabled: boolean;
+}
+
 export interface LinkItem {
     name: string;
     url: string;

@@ -23,6 +23,10 @@ import { Button } from "@/components/ui/button";
 import api from "@/lib/api";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
+import useSWR from "swr";
+import { AuthStatus } from "@/lib/types";
+import { Skeleton } from "../ui/skeleton";
+
 
 const formSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
@@ -30,9 +34,14 @@ const formSchema = z.object({
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
+const fetcher = (url: string) => api.get(url).then(res => res.data.data);
+
+
 export function RegisterForm() {
   const router = useRouter();
   const { toast } = useToast();
+  
+  const { data: authStatus, isLoading } = useSWR<AuthStatus>('/auth/status', fetcher);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -63,6 +72,46 @@ export function RegisterForm() {
       });
     }
   };
+  
+    if (isLoading) {
+    return (
+       <Card>
+        <CardHeader>
+          <CardTitle>Create an Account</CardTitle>
+          <CardDescription>
+            Checking registration availability...
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+             <Skeleton className="h-10 w-full" />
+             <Skeleton className="h-10 w-full" />
+             <Skeleton className="h-10 w-full" />
+             <Skeleton className="h-10 w-full" />
+        </CardContent>
+       </Card>
+    );
+  }
+
+  if (!authStatus?.local_auth_enabled) {
+      return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Registration Disabled</CardTitle>
+                <CardDescription>
+                    Account registration with username and password is not available.
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                <p className="text-sm text-muted-foreground">
+                    Please return to the login page and use an alternative method.
+                </p>
+                <Button asChild className="mt-4 w-full">
+                    <Link href="/login">Back to Login</Link>
+                </Button>
+            </CardContent>
+        </Card>
+      );
+  }
 
   return (
     <Card>

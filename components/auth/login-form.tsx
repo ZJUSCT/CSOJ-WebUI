@@ -26,17 +26,24 @@ import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from "../ui/separator";
 import { SiGitlab } from "react-icons/si";
+import useSWR from "swr";
+import { AuthStatus } from "@/lib/types";
+import { Skeleton } from "../ui/skeleton";
 
 const formSchema = z.object({
   username: z.string().min(1, "Username is required"),
   password: z.string().min(1, "Password is required"),
 });
 
+const fetcher = (url: string) => api.get(url).then(res => res.data.data);
+
 export function LoginForm() {
   const { login } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
   const gitlabLoginUrl = `/api/v1/auth/gitlab/login`;
+  
+  const { data: authStatus, isLoading } = useSWR<AuthStatus>('/auth/status', fetcher);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -64,78 +71,109 @@ export function LoginForm() {
       });
     }
   };
+  
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Login to CSOJ</CardTitle>
+          <CardDescription>
+            Checking available login methods...
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full" />
+          <div className="relative my-4">
+            <div className="absolute inset-0 flex items-center">
+                <Separator />
+            </div>
+          </div>
+          <Skeleton className="h-10 w-full" />
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Login to CSOJ</CardTitle>
         <CardDescription>
-          Enter your credentials to access your account.
+          {authStatus?.local_auth_enabled
+            ? "Enter your credentials or use an alternative login method."
+            : "Please use an available login method."}
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="username"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Username</FormLabel>
-                  <FormControl>
-                    <Input placeholder="your_username" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Password</FormLabel>
-                  <FormControl>
-                    <Input type="password" placeholder="********" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={form.formState.isSubmitting}
-            >
-              {form.formState.isSubmitting ? "Logging in..." : "Login"}
-            </Button>
-          </form>
-        </Form>
+        {authStatus?.local_auth_enabled && (
+          <>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="username"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Username</FormLabel>
+                      <FormControl>
+                        <Input placeholder="your_username" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Password</FormLabel>
+                      <FormControl>
+                        <Input type="password" placeholder="********" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button
+                  type="submit"
+                  className="w-full"
+                  disabled={form.formState.isSubmitting}
+                >
+                  {form.formState.isSubmitting ? "Logging in..." : "Login"}
+                </Button>
+              </form>
+            </Form>
 
-        <div className="relative my-4">
-            <div className="absolute inset-0 flex items-center">
+            <div className="relative my-4">
+              <div className="absolute inset-0 flex items-center">
                 <Separator />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
                 <span className="bg-card px-2 text-muted-foreground">
-                Or continue with
+                  Or continue with
                 </span>
+              </div>
             </div>
-        </div>
+          </>
+        )}
 
         <Button variant="outline" className="w-full" asChild>
-            <a href={gitlabLoginUrl}>
-                <SiGitlab className="mr-2 h-4 w-4" />
-                Login with GitLab
-            </a>
+          <a href={gitlabLoginUrl}>
+            <SiGitlab className="mr-2 h-4 w-4" />
+            Login with GitLab
+          </a>
         </Button>
 
-        <div className="mt-4 text-center text-sm">
-          Don&apos;t have an account?{" "}
-          <Link href="/register" className="underline">
-            Register
-          </Link>
-        </div>
+        {authStatus?.local_auth_enabled && (
+          <div className="mt-4 text-center text-sm">
+            Don&apos;t have an account?{" "}
+            <Link href="/register" className="underline">
+              Register
+            </Link>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
