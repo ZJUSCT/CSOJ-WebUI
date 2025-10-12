@@ -122,11 +122,8 @@ function ContestTimeline({ contest }: { contest: Contest }) {
             </div>
 
             <div className="flex justify-between mt-2 text-xs text-muted-foreground">
-                <span>{format(new Date(startTime), 'MMM d, HH:mm')}</span>
-                <span className={`font-medium ${statusColorClass}`}>
-                    {statusText}
-                </span>
-                <span>{format(new Date(endTime), 'MMM d, HH:mm')}</span>
+                <span>{format(new Date(startTime), 'yyyy/MM/dd HH:mm')}</span>
+                <span>{format(new Date(endTime), 'yyyy/MM/dd HH:mm')}</span>
             </div>
         </div>
     );
