@@ -1,4 +1,3 @@
-// FILE: app/(main)/profile/page.tsx
 "use client";
 import { useAuth } from '@/hooks/use-auth';
 import { useForm } from 'react-hook-form';
@@ -15,6 +14,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { getInitials } from '@/lib/utils';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { TokenInfoCard } from '@/components/profile/token-info-card';
 
 const profileSchema = z.object({
   nickname: z.string().min(1, 'Nickname is required').max(50),
@@ -86,8 +86,8 @@ export default function ProfilePage() {
     }
 
     return (
-        <div className="grid gap-6 md:grid-cols-3">
-            <Card className="md:col-span-1">
+        <div className="grid auto-rows-min gap-6 lg:grid-cols-3">
+            <Card>
                 <CardHeader>
                     <CardTitle>Avatar</CardTitle>
                     <CardDescription>Update your profile picture.</CardDescription>
@@ -104,12 +104,12 @@ export default function ProfilePage() {
                 </CardContent>
             </Card>
 
-             <Card className="md:col-span-2">
+            <Card className="lg:col-span-2 lg:row-span-2 flex flex-col">
                 <CardHeader>
                     <CardTitle>Profile Information</CardTitle>
-                     <CardDescription>Update your account details. Username cannot be changed.</CardDescription>
+                    <CardDescription>Update your account details. Username cannot be changed.</CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="flex flex-1 flex-col justify-between">
                     <Form {...form}>
                         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                             <FormItem>
@@ -129,7 +129,7 @@ export default function ProfilePage() {
                                     </FormItem>
                                 )}
                             />
-                             <FormField
+                            <FormField
                                 control={form.control}
                                 name="signature"
                                 render={({ field }) => (
@@ -148,10 +148,12 @@ export default function ProfilePage() {
                         </form>
                     </Form>
                     <div className="border-t pt-6 mt-6">
-                         <Button variant="destructive" onClick={handleLogout}>Log Out</Button>
+                        <Button variant="destructive" onClick={handleLogout}>Log Out</Button>
                     </div>
                 </CardContent>
             </Card>
+
+            <TokenInfoCard />
         </div>
     );
 }
