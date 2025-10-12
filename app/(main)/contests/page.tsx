@@ -324,8 +324,8 @@ function ContestDetailView({ contestId, view }: { contestId: string, view: strin
                 )}
             </div>
             
-            <div className="grid gap-8 lg:grid-cols-3 items-start">
-                <div className="lg:col-span-2 space-y-6">
+            <div className="grid gap-8 lg:grid-cols-4 items-start">
+                <div className="lg:col-span-3 space-y-6">
                     <Tabs value={view} className="w-full">
                         <TabsList className="grid w-full grid-cols-2">
                             <TabsTrigger value="problems" asChild>
