@@ -1,4 +1,3 @@
-// FILE: app/(main)/contests/page.tsx
 "use client";
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
@@ -25,98 +24,109 @@ import { AnnouncementsCard } from '@/components/contests/announcements-card';
 const fetcher = (url: string) => api.get(url).then(res => res.data.data);
 
 function ContestTimeline({ contest }: { contest: Contest }) {
-    const [now, setNow] = useState(new Date());
+    // Using a state for 'now' to make the component re-render and animate
+    const [now, setNow] = useState(new Date().getTime());
 
     useEffect(() => {
-        const interval = setInterval(() => setNow(new Date()), 1000);
-        return () => clearInterval(interval);
+        // Update 'now' every second for live progress
+        const timer = setInterval(() => setNow(new Date().getTime()), 1000);
+        return () => clearInterval(timer);
     }, []);
 
-    const startTime = new Date(contest.starttime);
-    const endTime = new Date(contest.endtime);
-    const duration = endTime.getTime() - startTime.getTime();
+    // Time & State Calculation
+    const startTime = new Date(contest.starttime).getTime();
+    const endTime = new Date(contest.endtime).getTime();
+    const totalDuration = endTime - startTime;
 
-    const extendedStart = new Date(startTime.getTime() - duration * 0.1);
-    const extendedEnd = new Date(endTime.getTime() + duration * 0.1);
-    const extendedDuration = extendedEnd.getTime() - extendedStart.getTime();
+    if (totalDuration <= 0) {
+        return <div className="text-center text-sm text-muted-foreground">Invalid contest duration.</div>;
+    }
 
     const hasStarted = now >= startTime;
     const hasEnded = now > endTime;
+    const status = hasEnded ? 'ended' : hasStarted ? 'ongoing' : 'upcoming';
 
-    const clampedNow = Math.min(Math.max(now.getTime(), extendedStart.getTime()), extendedEnd.getTime());
-    const extendedProgress = ((clampedNow - extendedStart.getTime()) / extendedDuration) * 100;
+    // Fixed Timeline Axis Calculation (always extends 10% on both sides)
+    const marginRatio = 0.10;
+    // Calculate the margin size so the contest duration takes up (1 - 2 * marginRatio) of the axis
+    const margin = totalDuration * marginRatio / (1 - 2 * marginRatio);
+    const axisStart = startTime - margin;
+    const axisEnd = endTime + margin;
+    
+    // Position Calculation Helper
+    const getPositionPercent = (time: number) => {
+        if (axisEnd === axisStart) return 0; // Avoid division by zero
+        const percent = ((time - axisStart) / (axisEnd - axisStart)) * 100;
+        return Math.max(0, Math.min(100, percent));
+    };
 
-    const contestProgress = hasStarted && !hasEnded ? (now.getTime() - startTime.getTime()) / duration : 0;
+    const startPos = getPositionPercent(startTime);
+    const endPos = getPositionPercent(endTime);
+    const nowPos = getPositionPercent(now);
 
-    let progressColor = "#3b82f6";
-    if (hasStarted && !hasEnded) {
-        if (contestProgress < 0.2) {
-            progressColor = "#22c55e";
-        } else if (contestProgress < 0.7) {
-            const ratio = (contestProgress - 0.2) / 0.5;
-            progressColor = `rgb(${Math.round(34 + (234 - 34) * ratio)}, ${Math.round(197 + (179 - 197) * ratio)}, ${Math.round(94 + (8 - 94) * ratio)})`;
-        } else {
-            const ratio = (contestProgress - 0.7) / 0.3;
-            progressColor = `rgb(${Math.round(234 + (239 - 234) * ratio)}, ${Math.round(179 - 179 * ratio)}, ${Math.round(8 - 8 * ratio)})`;
-        }
-    } else if (hasEnded) {
-        progressColor = "#9ca3af";
+    // 4. Progress Bar Styling & Status Text
+    const progressInContest = Math.max(0, Math.min(1, (now - startTime) / totalDuration));
+    let barColor = '';
+    let statusText = '';
+    let statusColorClass = '';
+
+    switch (status) {
+        case 'upcoming':
+            statusText = 'Upcoming';
+            statusColorClass = 'text-blue-500';
+            barColor = 'rgb(59 130 246)'; // blue-500
+            break;
+        case 'ended':
+            statusText = 'Ended';
+            statusColorClass = 'text-gray-500';
+            barColor = 'rgb(156 163 175)'; // gray-400
+            break;
+        case 'ongoing':
+            statusText = 'Live';
+            statusColorClass = 'text-green-500';
+            // Hue transitions from 120 (green) -> 60 (yellow) -> 0 (red)
+            const hue = 120 * (1 - progressInContest);
+            barColor = `hsl(${hue}, 80%, 50%)`;
+            break;
     }
 
-    const progressWidth = hasEnded ? "100%" : `${extendedProgress}%`;
-
+    const barStyle: React.CSSProperties = {
+        left: '0%',
+        width: `${nowPos}%`,
+        backgroundColor: barColor,
+        transition: 'width 1s linear, background-color 1s linear'
+    };
+    
     return (
-        <div className="space-y-2">
-            <div className="flex justify-between text-xs text-muted-foreground">
-                <span>Start</span>
-                <span>Now</span>
-                <span>End</span>
-            </div>
-
+        <div className="pt-2 pb-2">
             <div className="relative h-2 bg-gray-200 rounded-full overflow-hidden">
+                {/* The colored progress bar */}
                 <div
-                    className="absolute top-0 left-0 h-full transition-all duration-700 ease-linear"
-                    style={{
-                        width: progressWidth,
-                        backgroundColor: progressColor,
-                    }}
+                    className="h-full absolute"
+                    style={barStyle}
+                />
+                
+                {/* Start time vertical marker */}
+                <div
+                    className="absolute top-0 h-full w-0.5 bg-gray-500 opacity-75"
+                    style={{ left: `${startPos}%` }}
+                    title={`Starts: ${format(new Date(startTime), 'MMM d, HH:mm')}`}
                 />
 
-                {hasStarted && !hasEnded && (
-                    <div
-                        className="absolute top-0 bottom-0 w-0.5 bg-black/60 shadow-lg transition-all duration-500 ease-linear"
-                        style={{ left: `${extendedProgress}%` }}
-                    />
-                )}
-
+                {/* End time vertical marker */}
                 <div
-                    className="absolute top-0 bottom-0 w-0.5 bg-gray-700"
-                    style={{
-                        left: `${(startTime.getTime() - extendedStart.getTime()) / extendedDuration * 100}%`,
-                    }}
-                />
-                <div
-                    className="absolute top-0 bottom-0 w-0.5 bg-gray-700"
-                    style={{
-                        left: `${(endTime.getTime() - extendedStart.getTime()) / extendedDuration * 100}%`,
-                    }}
+                    className="absolute top-0 h-full w-0.5 bg-gray-500 opacity-75"
+                    style={{ left: `${endPos}%` }}
+                    title={`Ends: ${format(new Date(endTime), 'MMM d, HH:mm')}`}
                 />
             </div>
 
-            <div className="flex justify-between text-xs text-muted-foreground">
-                <span>{format(startTime, 'MMM d, HH:mm')}</span>
-                <span
-                    className={`font-medium ${
-                        hasEnded
-                            ? 'text-gray-500'
-                            : hasStarted
-                            ? 'text-green-500'
-                            : 'text-blue-500'
-                    }`}
-                >
-                    {hasEnded ? 'Ended' : hasStarted ? 'Live' : 'Upcoming'}
+            <div className="flex justify-between mt-2 text-xs text-muted-foreground">
+                <span>{format(new Date(startTime), 'MMM d, HH:mm')}</span>
+                <span className={`font-medium ${statusColorClass}`}>
+                    {statusText}
                 </span>
-                <span>{format(endTime, 'MMM d, HH:mm')}</span>
+                <span>{format(new Date(endTime), 'MMM d, HH:mm')}</span>
             </div>
         </div>
     );
@@ -404,7 +414,7 @@ function ContestDetailView({ contestId, view }: { contestId: string, view: strin
             toast({ variant: "destructive", title: "Registration Failed", description: error.response?.data?.message || "An unexpected error occurred." });
         }
     };
-   
+    
     const now = new Date();
     const canRegister = contest && now >= new Date(contest.starttime) && now <= new Date(contest.endtime);
 
@@ -444,7 +454,7 @@ function ContestDetailView({ contestId, view }: { contestId: string, view: strin
                             <ContestLeaderboard contestId={contestId} />
                           </div>
                         ) : (
-                          <ContestProblems contestId={contestId} />
+                            <ContestProblems contestId={contestId} />
                         )}
                     </div>
                 </div>
