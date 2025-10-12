@@ -21,109 +21,105 @@ import { UserProfileCard } from '@/components/shared/user-profile-card';
 import { getInitials } from '@/lib/utils';
 import EchartsTrendChart from '@/components/charts/echarts-trend-chart';
 import { AnnouncementsCard } from '@/components/contests/announcements-card';
-import { formatDistanceToNow } from "date-fns";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { motion } from "framer-motion";
 
 const fetcher = (url: string) => api.get(url).then(res => res.data.data);
 
 function ContestTimeline({ contest }: { contest: Contest }) {
-  const [now, setNow] = useState(new Date());
-  const startTime = new Date(contest.starttime);
-  const endTime = new Date(contest.endtime);
+    const [now, setNow] = useState(new Date());
 
-  useEffect(() => {
-    const timer = setInterval(() => setNow(new Date()), 1000 * 30);
-    return () => clearInterval(timer);
-  }, []);
+    useEffect(() => {
+        const interval = setInterval(() => setNow(new Date()), 1000);
+        return () => clearInterval(interval);
+    }, []);
 
-  const total = endTime.getTime() - startTime.getTime();
-  const elapsed = now.getTime() - startTime.getTime();
-  const progress = Math.min(Math.max(elapsed / total, 0), 1);
+    const startTime = new Date(contest.starttime);
+    const endTime = new Date(contest.endtime);
+    const duration = endTime.getTime() - startTime.getTime();
 
-  const hasStarted = now >= startTime;
-  const hasEnded = now > endTime;
+    const extendedStart = new Date(startTime.getTime() - duration * 0.1);
+    const extendedEnd = new Date(endTime.getTime() + duration * 0.1);
+    const extendedDuration = extendedEnd.getTime() - extendedStart.getTime();
 
-  const gradient =
-    hasEnded
-      ? "from-gray-400 to-red-400"
-      : hasStarted
-      ? "from-green-400 via-emerald-500 to-green-600"
-      : "from-blue-400 to-indigo-500";
+    const hasStarted = now >= startTime;
+    const hasEnded = now > endTime;
 
-  const statusText = hasEnded
-    ? "Finished"
-    : hasStarted
-    ? "Ongoing"
-    : "Upcoming";
+    const clampedNow = Math.min(Math.max(now.getTime(), extendedStart.getTime()), extendedEnd.getTime());
+    const extendedProgress = ((clampedNow - extendedStart.getTime()) / extendedDuration) * 100;
 
-  const statusColor = hasEnded
-    ? "text-red-500"
-    : hasStarted
-    ? "text-green-500"
-    : "text-blue-500";
+    const contestProgress = hasStarted && !hasEnded ? (now.getTime() - startTime.getTime()) / duration : 0;
 
-  const indicatorLeft = `${progress * 100}%`;
+    let progressColor = "#3b82f6";
+    if (hasStarted && !hasEnded) {
+        if (contestProgress < 0.2) {
+            progressColor = "#22c55e";
+        } else if (contestProgress < 0.7) {
+            const ratio = (contestProgress - 0.2) / 0.5;
+            progressColor = `rgb(${Math.round(34 + (234 - 34) * ratio)}, ${Math.round(197 + (179 - 197) * ratio)}, ${Math.round(94 + (8 - 94) * ratio)})`;
+        } else {
+            const ratio = (contestProgress - 0.7) / 0.3;
+            progressColor = `rgb(${Math.round(234 + (239 - 234) * ratio)}, ${Math.round(179 - 179 * ratio)}, ${Math.round(8 - 8 * ratio)})`;
+        }
+    } else if (hasEnded) {
+        progressColor = "#9ca3af";
+    }
 
-  return (
-    <div className="space-y-2">
-      <div className="flex justify-between text-xs text-muted-foreground">
-        <span>Start</span>
-        <span>Now</span>
-        <span>End</span>
-      </div>
+    const progressWidth = hasEnded ? "100%" : `${extendedProgress}%`;
 
-      <div className="relative h-2 bg-muted rounded-full overflow-hidden">
-        <motion.div
-          initial={{ width: 0 }}
-          animate={{ width: hasStarted ? `${progress * 100}%` : 0 }}
-          transition={{ ease: "easeInOut", duration: 0.6 }}
-          className={`absolute h-full bg-gradient-to-r ${gradient} transition-all`}
-        />
+    return (
+        <div className="space-y-2">
+            <div className="flex justify-between text-xs text-muted-foreground">
+                <span>Start</span>
+                <span>Now</span>
+                <span>End</span>
+            </div>
 
-        {hasStarted && !hasEnded && (
-          <motion.div
-            animate={{ left: indicatorLeft }}
-            transition={{ ease: "linear", duration: 0.5 }}
-            className="absolute top-0 bottom-0 w-0.5 bg-orange-500 shadow-md"
-          >
-            <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-orange-500 rounded-full animate-ping opacity-70" />
-          </motion.div>
-        )}
+            <div className="relative h-2 bg-gray-200 rounded-full overflow-hidden">
+                <div
+                    className="absolute top-0 left-0 h-full transition-all duration-700 ease-linear"
+                    style={{
+                        width: progressWidth,
+                        backgroundColor: progressColor,
+                    }}
+                />
 
-        <div className="absolute top-0 bottom-0 left-0 w-0.5 bg-gray-500" />
-        <div className="absolute top-0 bottom-0 right-0 w-0.5 bg-gray-500" />
-      </div>
+                {hasStarted && !hasEnded && (
+                    <div
+                        className="absolute top-0 bottom-0 w-0.5 bg-black/60 shadow-lg transition-all duration-500 ease-linear"
+                        style={{ left: `${extendedProgress}%` }}
+                    />
+                )}
 
-      <div className="flex justify-between text-xs">
-        <span>{format(startTime, "MMM d, HH:mm")}</span>
+                <div
+                    className="absolute top-0 bottom-0 w-0.5 bg-gray-700"
+                    style={{
+                        left: `${(startTime.getTime() - extendedStart.getTime()) / extendedDuration * 100}%`,
+                    }}
+                />
+                <div
+                    className="absolute top-0 bottom-0 w-0.5 bg-gray-700"
+                    style={{
+                        left: `${(endTime.getTime() - extendedStart.getTime()) / extendedDuration * 100}%`,
+                    }}
+                />
+            </div>
 
-        <TooltipProvider delayDuration={150}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span className={`font-semibold cursor-help ${statusColor}`}>
-                {statusText}
-              </span>
-            </TooltipTrigger>
-            <TooltipContent>
-              {hasStarted && !hasEnded ? (
-                <p>
-                  Running for {formatDistanceToNow(startTime)} (
-                  {Math.round(progress * 100)}%)
-                </p>
-              ) : hasEnded ? (
-                <p>Ended {formatDistanceToNow(endTime)} ago</p>
-              ) : (
-                <p>Starts in {formatDistanceToNow(startTime)}</p>
-              )}
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-
-        <span>{format(endTime, "MMM d, HH:mm")}</span>
-      </div>
-    </div>
-  );
+            <div className="flex justify-between text-xs text-muted-foreground">
+                <span>{format(startTime, 'MMM d, HH:mm')}</span>
+                <span
+                    className={`font-medium ${
+                        hasEnded
+                            ? 'text-gray-500'
+                            : hasStarted
+                            ? 'text-green-500'
+                            : 'text-blue-500'
+                    }`}
+                >
+                    {hasEnded ? 'Ended' : hasStarted ? 'Live' : 'Upcoming'}
+                </span>
+                <span>{format(endTime, 'MMM d, HH:mm')}</span>
+            </div>
+        </div>
+    );
 }
 
 function ContestCard({ contest }: { contest: Contest }) {
