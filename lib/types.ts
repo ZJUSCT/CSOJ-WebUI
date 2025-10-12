@@ -8,6 +8,14 @@ export interface User {
   avatar_url: string;
 }
 
+export interface Announcement {
+  id: string;
+  title: string;
+  created_at: string;
+  updated_at: string;
+  description: string;
+}
+
 export interface Contest {
   id: string;
   name: string;
@@ -15,6 +23,7 @@ export interface Contest {
   endtime: string;
   problem_ids: string[];
   description: string;
+  announcements?: Announcement[];
 }
 
 export interface WorkflowStep {

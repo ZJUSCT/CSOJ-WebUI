@@ -1,3 +1,4 @@
+// FILE: app/(main)/contests/page.tsx
 "use client";
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
@@ -9,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
-import { Calendar, Clock, BookOpen, Trophy, CheckCircle, Edit3, Loader2 } from 'lucide-react'; // 导入 Loader2
+import { Calendar, Clock, BookOpen, Trophy, CheckCircle, Edit3, Loader2 } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import MarkdownViewer from '@/components/shared/markdown-viewer';
@@ -19,6 +20,7 @@ import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/h
 import { UserProfileCard } from '@/components/shared/user-profile-card';
 import { getInitials } from '@/lib/utils';
 import EchartsTrendChart from '@/components/charts/echarts-trend-chart';
+import { AnnouncementsCard } from '@/components/contests/announcements-card';
 
 const fetcher = (url: string) => api.get(url).then(res => res.data.data);
 
@@ -122,7 +124,6 @@ function ContestList() {
 }
 
 
-// --- ProblemCard, ContestTrend (no changes) ---
 function ProblemCard({ problemId }: { problemId: string }) {
     const { data: problem, isLoading } = useSWR<Problem>(`/problems/${problemId}`, fetcher);
     if (isLoading) return <Skeleton className="h-24 w-full" />;
@@ -234,9 +235,7 @@ function LeaderboardRow({ entry, rank, problemIds }: { entry: LeaderboardEntry, 
 }
 
 
-// --- ContestLeaderboard component ---
 function ContestLeaderboard({ contestId }: { contestId: string }) {
-    // Fetch contest details to get the problem IDs in order
     const { data: contest, error: contestError, isLoading: isContestLoading } = useSWR<Contest>(`/contests/${contestId}`, fetcher);
     const { data: leaderboard, error: leaderboardError, isLoading: isLeaderboardLoading } = useSWR<LeaderboardEntry[]>(`/contests/${contestId}/leaderboard`, fetcher, { refreshInterval: 15000 });
 
@@ -280,8 +279,6 @@ function ContestLeaderboard({ contestId }: { contestId: string }) {
     );
 }
 
-
-// --- Main Contest View with Layout Logic ---
 function ContestDetailView({ contestId, view }: { contestId: string, view: string }) {
     const { data: contest } = useSWR<Contest>(`/contests/${contestId}`, fetcher);
     const { data: history, isLoading: isHistoryLoading } = useSWR<ScoreHistoryPoint[]>(`/contests/${contestId}/history`, fetcher);
@@ -326,31 +323,39 @@ function ContestDetailView({ contestId, view }: { contestId: string, view: strin
                     )
                 )}
             </div>
-            <Tabs value={view} className="w-full">
-                <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="problems" asChild>
-                        <Link href={`/contests?id=${contestId}&view=problems`}>Problems</Link>
-                    </TabsTrigger>
-                    <TabsTrigger value="leaderboard" asChild>
-                        <Link href={`/contests?id=${contestId}&view=leaderboard`}>Leaderboard</Link>
-                    </TabsTrigger>
-                </TabsList>
-            </Tabs>
-            <div className="mt-6">
-                {view === 'leaderboard' ? (
-                  <div className="space-y-6">
-                    <ContestTrend contestId={contestId} />
-                    <ContestLeaderboard contestId={contestId} />
-                  </div>
-                ) : (
-                  <ContestProblems contestId={contestId} />
-                )}
+            
+            <div className="grid gap-8 lg:grid-cols-3 items-start">
+                <div className="lg:col-span-2 space-y-6">
+                    <Tabs value={view} className="w-full">
+                        <TabsList className="grid w-full grid-cols-2">
+                            <TabsTrigger value="problems" asChild>
+                                <Link href={`/contests?id=${contestId}&view=problems`}>Problems</Link>
+                            </TabsTrigger>
+                            <TabsTrigger value="leaderboard" asChild>
+                                <Link href={`/contests?id=${contestId}&view=leaderboard`}>Leaderboard</Link>
+                            </TabsTrigger>
+                        </TabsList>
+                    </Tabs>
+                    <div>
+                        {view === 'leaderboard' ? (
+                          <div className="space-y-6">
+                            <ContestTrend contestId={contestId} />
+                            <ContestLeaderboard contestId={contestId} />
+                          </div>
+                        ) : (
+                          <ContestProblems contestId={contestId} />
+                        )}
+                    </div>
+                </div>
+
+                <div className="space-y-6 lg:sticky lg:top-20">
+                     <AnnouncementsCard contestId={contestId} />
+                </div>
             </div>
         </div>
     );
 }
 
-// --- Page Orchestrator (no changes) ---
 function ContestsPageContent() {
     const searchParams = useSearchParams();
     const contestId = searchParams.get('id');
