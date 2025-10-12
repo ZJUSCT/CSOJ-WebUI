@@ -1,5 +1,3 @@
-// FILE: app/(main)/submissions/page.tsx
-
 "use client";
 import useSWR from 'swr';
 import api from '@/lib/api';
@@ -17,6 +15,7 @@ import { Clock, Code, Hash, Layers, Loader2, Server, Tag, User, XCircle } from '
 import { Progress } from "@/components/ui/progress";
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { Separator } from '@/components/ui/separator';
 
 const fetcher = (url: string) => api.get(url).then(res => res.data.data);
 
@@ -103,7 +102,7 @@ function QueuePosition({ submissionId, cluster }: { submissionId: string, cluste
 }
 
 
-// Component for submission details (from former [submissionId]/page.tsx)
+// --- [修改] Component for submission details ---
 function SubmissionDetails({ submissionId }: { submissionId: string }) {
     const { toast } = useToast();
     const { data: submission, error, isLoading, mutate } = useSWR<Submission>(`/submissions/${submissionId}`, fetcher, {
@@ -132,7 +131,7 @@ function SubmissionDetails({ submissionId }: { submissionId: string }) {
 
     return (
         <div className="grid gap-6 lg:grid-cols-3">
-            <div className="lg:col-span-2 space-y-6">
+            <div className="lg:col-span-2">
                 <Card>
                     <CardHeader>
                         <CardTitle>Live Log</CardTitle>
@@ -143,11 +142,13 @@ function SubmissionDetails({ submissionId }: { submissionId: string }) {
                     </CardContent>
                 </Card>
             </div>
+            
+            {/* --- [修改] 右侧合并为一个卡片 --- */}
             <div className="space-y-6">
                  <Card>
                     <CardHeader>
                         <div className="flex items-center justify-between">
-                            <CardTitle>Submission Details</CardTitle>
+                            <CardTitle>Submission Info</CardTitle>
                             {canBeInterrupted && (
                                 <Button variant="destructive" size="sm" onClick={handleInterrupt}>
                                     <XCircle /> Interrupt
@@ -156,12 +157,13 @@ function SubmissionDetails({ submissionId }: { submissionId: string }) {
                         </div>
                     </CardHeader>
                     <CardContent className="space-y-4 text-sm">
+                        {/* --- Submission Details Section --- */}
                         <div className="flex items-center justify-between">
                             <span className="text-muted-foreground flex items-center gap-2"><Hash className="h-4 w-4"/>Status</span>
                             <SubmissionStatusBadge status={submission.status} />
                         </div>
                         {submission.status === 'Queued' && <QueuePosition submissionId={submission.id} cluster={submission.cluster} />}
-                         {(submission.status === 'Running') && totalSteps > 0 && (
+                        {(submission.status === 'Running') && totalSteps > 0 && (
                             <div>
                                 <Progress value={progress} className="w-full" />
                                 <p className="text-xs text-muted-foreground mt-1">Step {submission.current_step + 1} of {totalSteps}: {problem?.workflow[submission.current_step]?.name}</p>
@@ -193,21 +195,22 @@ function SubmissionDetails({ submissionId }: { submissionId: string }) {
                             <span className="text-muted-foreground flex items-center gap-2"><Server className="h-4 w-4"/>Node</span>
                             <span>{submission.node || 'N/A'}</span>
                         </div>
+                        
+                        {/* --- [新增] Judge Info Section (conditionally rendered) --- */}
+                        {submission.info && Object.keys(submission.info).length > 0 && (
+                             <>
+                                <Separator className="my-4" />
+                                <div className="space-y-2">
+                                    <h3 className="font-semibold tracking-tight">Judge Info</h3>
+                                    <pre className="p-4 bg-muted rounded-md text-xs overflow-auto">
+                                        {JSON.stringify(submission.info, null, 2)}
+                                    </pre>
+                                    <p className="text-xs text-muted-foreground">This is the raw JSON output from the final step of the judging process.</p>
+                                </div>
+                             </>
+                        )}
                     </CardContent>
                  </Card>
-                {submission.info && Object.keys(submission.info).length > 0 && (
-                     <Card>
-                         <CardHeader><CardTitle>Judge Info</CardTitle></CardHeader>
-                         <CardContent>
-                             <pre className="p-4 bg-muted rounded-md text-xs overflow-auto">
-                                 {JSON.stringify(submission.info, null, 2)}
-                             </pre>
-                         </CardContent>
-                        <CardFooter>
-                            <p className="text-xs text-muted-foreground">This is the raw JSON output from the final step of the judging process.</p>
-                        </CardFooter>
-                     </Card>
-                )}
             </div>
         </div>
     );
