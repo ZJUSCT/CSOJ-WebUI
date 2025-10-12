@@ -24,6 +24,75 @@ import { AnnouncementsCard } from '@/components/contests/announcements-card';
 
 const fetcher = (url: string) => api.get(url).then(res => res.data.data);
 
+function ContestTimeline({ contest }: { contest: Contest }) {
+    const now = new Date();
+    const startTime = new Date(contest.starttime);
+    const endTime = new Date(contest.endtime);
+    
+    const hasStarted = now >= startTime;
+    const hasEnded = now > endTime;
+    
+    // Calculate progress position for visual indicator
+    const totalDuration = endTime.getTime() - startTime.getTime();
+    const elapsed = now.getTime() - startTime.getTime();
+    const progressPercent = hasStarted && !hasEnded ? Math.max(0, Math.min(100, (elapsed / totalDuration) * 100)) : 0;
+    
+    // Determine progress indicator position class
+    let indicatorPosition = 'left-1/2';
+    if (hasStarted && !hasEnded) {
+        if (progressPercent < 20) indicatorPosition = 'left-1/5';
+        else if (progressPercent < 40) indicatorPosition = 'left-2/5';
+        else if (progressPercent < 60) indicatorPosition = 'left-3/5';
+        else if (progressPercent < 80) indicatorPosition = 'left-4/5';
+        else indicatorPosition = 'right-4';
+    }
+    
+    return (
+        <div className="space-y-2">
+            <div className="flex justify-between text-xs text-muted-foreground">
+                <span>Start</span>
+                <span>Now</span>
+                <span>End</span>
+            </div>
+            <div className="relative h-2 bg-gray-200 rounded-full overflow-hidden">
+                {/* Progress bar based on contest status */}
+                {hasEnded && (
+                    <div className="h-full w-full bg-red-400 transition-all duration-500" />
+                )}
+                {hasStarted && !hasEnded && (
+                    <div className={`h-full bg-green-400 transition-all duration-500 ${
+                        progressPercent < 20 ? 'w-1/5' :
+                        progressPercent < 40 ? 'w-2/5' :
+                        progressPercent < 60 ? 'w-3/5' :
+                        progressPercent < 80 ? 'w-4/5' : 'w-full'
+                    }`} />
+                )}
+                {!hasStarted && (
+                    <div className="h-full w-0 bg-blue-400 transition-all duration-500" />
+                )}
+                
+                {/* Current time indicator for ongoing contests */}
+                {hasStarted && !hasEnded && (
+                    <div className={`absolute top-0 bottom-0 w-0.5 bg-orange-600 shadow-lg transform -translate-x-0.5 ${indicatorPosition}`} />
+                )}
+                
+                {/* Start and end markers */}
+                <div className="absolute top-0 bottom-0 left-0 w-0.5 bg-gray-700" />
+                <div className="absolute top-0 bottom-0 right-0 w-0.5 bg-gray-700" />
+            </div>
+            <div className="flex justify-between text-xs text-muted-foreground">
+                <span>{format(startTime, 'MMM d, HH:mm')}</span>
+                <span className={`font-medium ${
+                    hasEnded ? 'text-red-500' : hasStarted ? 'text-green-500' : 'text-blue-500'
+                }`}>
+                    {hasEnded ? 'Ended' : hasStarted ? 'Live' : 'Upcoming'}
+                </span>
+                <span>{format(endTime, 'MMM d, HH:mm')}</span>
+            </div>
+        </div>
+    );
+}
+
 function ContestCard({ contest }: { contest: Contest }) {
     const { data: history, isLoading: isHistoryLoading } = useSWR<ScoreHistoryPoint[]>(`/contests/${contest.id}/history`, fetcher);
     const { mutate } = useSWRConfig();
@@ -71,9 +140,12 @@ function ContestCard({ contest }: { contest: Contest }) {
                     <span className={`font-semibold ${statusText === 'Ongoing' ? 'text-green-500' : statusText === 'Finished' ? 'text-red-500' : 'text-blue-500'}`}>{statusText}</span>
                 </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-2 text-sm text-muted-foreground">
-                <div className="flex items-center gap-2"><Calendar className="h-4 w-4" /><span>{format(startTime, 'MMM d, yyyy')} - {format(endTime, 'MMM d, yyyy')}</span></div>
-                <div className="flex items-center gap-2"><Clock className="h-4 w-4" /><span>{format(startTime, 'p')} to {format(endTime, 'p')}</span></div>
+            <CardContent className="space-y-4 text-sm text-muted-foreground">
+                <div className="space-y-2">
+                    <div className="flex items-center gap-2"><Calendar className="h-4 w-4" /><span>{format(startTime, 'MMM d, yyyy')} - {format(endTime, 'MMM d, yyyy')}</span></div>
+                    <div className="flex items-center gap-2"><Clock className="h-4 w-4" /><span>{format(startTime, 'p')} to {format(endTime, 'p')}</span></div>
+                </div>
+                <ContestTimeline contest={contest} />
             </CardContent>
             <CardFooter className="flex justify-between items-center">
                 <Link href={`/contests?id=${contest.id}`} passHref>
@@ -101,7 +173,7 @@ function ContestList() {
     const { data: contests, error, isLoading } = useSWR<Record<string, Contest>>('/contests', fetcher);
 
     if (isLoading) return (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 grid-cols-1">
             {[...Array(3)].map((_, i) => (
                 <Card key={i}>
                     <CardHeader><Skeleton className="h-6 w-3/4" /><Skeleton className="h-4 w-1/2" /></CardHeader>
