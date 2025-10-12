@@ -1,5 +1,3 @@
-// FILE: components/submissions/submission-upload-form.tsx
-
 "use client";
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useDropzone, FileWithPath } from 'react-dropzone';
@@ -83,6 +81,7 @@ export default function SubmissionUploadForm({ problemId, uploadLimits }: Submis
     
     const showEditor = uploadLimits.editor === true;
     const showUploader = uploadLimits.upload_form === true;
+    
     const defaultMode = showEditor ? 'editor' : 'upload';
     const [activeMode, setActiveMode] = useState(defaultMode);
 
