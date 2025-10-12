@@ -33,6 +33,7 @@ export interface Problem {
     upload: {
         max_num: number;
         max_size: number;
+        upload_form?: boolean;
         editor?: boolean;
         editor_files?: string[];
     };
