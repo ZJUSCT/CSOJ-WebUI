@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
-import { Calendar, Clock, BookOpen, Trophy, CheckCircle, Edit3 } from 'lucide-react';
+import { Calendar, Clock, BookOpen, Trophy, CheckCircle, Edit3, Loader2 } from 'lucide-react'; // 导入 Loader2
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import MarkdownViewer from '@/components/shared/markdown-viewer';
@@ -22,12 +22,84 @@ import EchartsTrendChart from '@/components/charts/echarts-trend-chart';
 
 const fetcher = (url: string) => api.get(url).then(res => res.data.data);
 
-// --- ContestList ---
+function ContestCard({ contest }: { contest: Contest }) {
+    const { data: history, isLoading: isHistoryLoading } = useSWR<ScoreHistoryPoint[]>(`/contests/${contest.id}/history`, fetcher);
+    const { mutate } = useSWRConfig();
+    const { toast } = useToast();
+    const [isRegistered, setIsRegistered] = useState(false);
+    const [isRegistering, setIsRegistering] = useState(false);
+
+    useEffect(() => {
+        setIsRegistered(!!history && history.length > 0);
+    }, [history]);
+
+    const handleRegister = async (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsRegistering(true);
+        try {
+            await api.post(`/contests/${contest.id}/register`);
+            toast({ title: "Success", description: "You have successfully registered for the contest." });
+            mutate(`/contests/${contest.id}/history`);
+        } catch (error: any) {
+            toast({ variant: "destructive", title: "Registration Failed", description: error.response?.data?.message || "An unexpected error occurred." });
+        } finally {
+            setIsRegistering(false);
+        }
+    };
+
+    const now = new Date();
+    const startTime = new Date(contest.starttime);
+    const endTime = new Date(contest.endtime);
+    const hasStarted = now >= startTime;
+    const hasEnded = now > endTime;
+    
+    let statusText = "Upcoming";
+    if (hasStarted && !hasEnded) statusText = "Ongoing";
+    if (hasEnded) statusText = "Finished";
+
+    const canRegister = statusText === "Ongoing";
+    const isLoadingRegistration = isHistoryLoading || isRegistering;
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle className="text-xl">{contest.name}</CardTitle>
+                <CardDescription>
+                    <span className={`font-semibold ${statusText === 'Ongoing' ? 'text-green-500' : statusText === 'Finished' ? 'text-red-500' : 'text-blue-500'}`}>{statusText}</span>
+                </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-2 text-sm text-muted-foreground">
+                <div className="flex items-center gap-2"><Calendar className="h-4 w-4" /><span>{format(startTime, 'MMM d, yyyy')} - {format(endTime, 'MMM d, yyyy')}</span></div>
+                <div className="flex items-center gap-2"><Clock className="h-4 w-4" /><span>{format(startTime, 'p')} to {format(endTime, 'p')}</span></div>
+            </CardContent>
+            <CardFooter className="flex justify-between items-center">
+                <Link href={`/contests?id=${contest.id}`} passHref>
+                    <Button>View Details</Button>
+                </Link>
+                {canRegister && (
+                    isRegistered ? (
+                        <Button disabled variant="secondary">
+                            <CheckCircle className="mr-2 h-4 w-4" /> Registered
+                        </Button>
+                    ) : (
+                        <Button onClick={handleRegister} disabled={isLoadingRegistration} variant="outline">
+                            {isLoadingRegistration ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Edit3 className="mr-2 h-4 w-4" />}
+                            {isLoadingRegistration ? "Checking..." : "Register"}
+                        </Button>
+                    )
+                )}
+            </CardFooter>
+        </Card>
+    );
+}
+
+
 function ContestList() {
     const { data: contests, error, isLoading } = useSWR<Record<string, Contest>>('/contests', fetcher);
 
     if (isLoading) return (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {[...Array(3)].map((_, i) => (
                 <Card key={i}>
                     <CardHeader><Skeleton className="h-6 w-3/4" /><Skeleton className="h-4 w-1/2" /></CardHeader>
@@ -42,36 +114,9 @@ function ContestList() {
 
     return (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {Object.values(contests).map(contest => {
-                const now = new Date();
-                const startTime = new Date(contest.starttime);
-                const endTime = new Date(contest.endtime);
-                const hasStarted = now >= startTime;
-                const hasEnded = now > endTime;
-                let statusText = "Upcoming";
-                if (hasStarted && !hasEnded) statusText = "Ongoing";
-                if (hasEnded) statusText = "Finished";
-
-                return (
-                    <Card key={contest.id}>
-                        <CardHeader>
-                            <CardTitle className="text-xl">{contest.name}</CardTitle>
-                            <CardDescription>
-                                <span className={`font-semibold ${statusText === 'Ongoing' ? 'text-green-500' : statusText === 'Finished' ? 'text-red-500' : 'text-blue-500'}`}>{statusText}</span>
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-2 text-sm text-muted-foreground">
-                            <div className="flex items-center gap-2"><Calendar className="h-4 w-4" /><span>{format(startTime, 'MMM d, yyyy')} - {format(endTime, 'MMM d, yyyy')}</span></div>
-                            <div className="flex items-center gap-2"><Clock className="h-4 w-4" /><span>{format(startTime, 'p')} to {format(endTime, 'p')}</span></div>
-                        </CardContent>
-                        <CardFooter>
-                            <Link href={`/contests?id=${contest.id}`} passHref>
-                                <Button>View Details</Button>
-                            </Link>
-                        </CardFooter>
-                    </Card>
-                )
-            })}
+            {Object.values(contests).map(contest => (
+                <ContestCard key={contest.id} contest={contest} />
+            ))}
         </div>
     );
 }
