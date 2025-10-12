@@ -281,8 +281,8 @@ export default function SubmissionUploadForm({ problemId, uploadLimits }: Submis
             {showEditor && showUploader ? (
                 <Tabs value={activeMode} onValueChange={setActiveMode} className="w-full">
                     <TabsList className="grid w-full grid-cols-2">
-                        <TabsTrigger value="editor"><Code /> Editor</TabsTrigger>
-                        <TabsTrigger value="upload"><Upload /> Upload</TabsTrigger>
+                        <TabsTrigger value="editor">Editor</TabsTrigger>
+                        <TabsTrigger value="upload">Upload</TabsTrigger>
                     </TabsList>
                     <TabsContent value="editor" className="mt-4">{renderEditor()}</TabsContent>
                     <TabsContent value="upload" className="mt-4">{renderUploader()}</TabsContent>
