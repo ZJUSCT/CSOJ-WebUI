@@ -6,6 +6,7 @@ import { SWRProvider } from "@/providers/swr-provider";
 import { AuthProvider } from "@/providers/auth-provider";
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/providers/theme-provider";
+import {NextIntlClientProvider} from 'next-intl';
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -27,16 +28,18 @@ export default function RootLayout({
           inter.variable
         )}
       >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-        >
-          <AuthProvider>
-            <SWRProvider>{children}</SWRProvider>
-          </AuthProvider>
-          <Toaster />
-        </ThemeProvider>
+        <NextIntlClientProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+          >
+            <AuthProvider>
+              <SWRProvider>{children}</SWRProvider>
+            </AuthProvider>
+            <Toaster />
+          </ThemeProvider>
+        </NextIntlClientProvider>
       </body>
     </html>
   );

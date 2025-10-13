@@ -15,17 +15,21 @@ import { getInitials } from '@/lib/utils';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { TokenInfoCard } from '@/components/profile/token-info-card';
-
-const profileSchema = z.object({
-  nickname: z.string().min(1, 'Nickname is required').max(50),
-  signature: z.string().max(100).optional(),
-});
+import { useTranslations } from 'next-intl'; // Import useTranslations
 
 export default function ProfilePage() {
+    const t = useTranslations('Profile'); // Initialize translations
     const { user, isLoading, logout } = useAuth();
     const { toast } = useToast();
     const router = useRouter();
     const [isUploading, setIsUploading] = useState(false);
+
+    // Schema definition must be inside the component or outside, but using t() inside requires it to be inside 
+    // or passed as a function argument, let's redefine it here to use t() for error messages.
+    const profileSchema = z.object({
+        nickname: z.string().min(1, t('form.nicknameRequired')).max(50),
+        signature: z.string().max(100).optional(),
+    });
 
     const form = useForm<z.infer<typeof profileSchema>>({
         resolver: zodResolver(profileSchema),
@@ -47,14 +51,14 @@ export default function ProfilePage() {
             await api.post('/user/avatar', formData, {
                 headers: { 'Content-Type': 'multipart/form-data' },
             });
-            toast({ title: 'Avatar updated successfully!' });
+            toast({ title: t('avatar.uploadSuccess') });
             // Forcing a reload to get the new user profile with updated avatar URL
             window.location.reload(); 
         } catch (error: any) {
             toast({
                 variant: 'destructive',
-                title: 'Upload failed',
-                description: error.response?.data?.message || 'Could not upload avatar.',
+                title: t('avatar.uploadFailTitle'),
+                description: error.response?.data?.message || t('avatar.uploadFailDescription'),
             });
         } finally {
             setIsUploading(false);
@@ -64,14 +68,14 @@ export default function ProfilePage() {
     const onSubmit = async (values: z.infer<typeof profileSchema>) => {
         try {
             await api.patch('/user/profile', values);
-            toast({ title: 'Profile updated successfully!' });
+            toast({ title: t('form.updateSuccess') });
             // Forcing a reload to get the new user profile
             window.location.reload();
         } catch (error: any) {
              toast({
                 variant: 'destructive',
-                title: 'Update failed',
-                description: error.response?.data?.message || 'Could not update profile.',
+                title: t('form.updateFailTitle'),
+                description: error.response?.data?.message || t('form.updateFailDescription'),
             });
         }
     };
@@ -85,12 +89,14 @@ export default function ProfilePage() {
         return <Skeleton className="w-full h-96" />;
     }
 
+    const isSubmitting = form.formState.isSubmitting;
+
     return (
         <div className="grid auto-rows-min gap-6 lg:grid-cols-3">
             <Card>
                 <CardHeader>
-                    <CardTitle>Avatar</CardTitle>
-                    <CardDescription>Update your profile picture.</CardDescription>
+                    <CardTitle>{t('avatar.title')}</CardTitle>
+                    <CardDescription>{t('avatar.description')}</CardDescription>
                 </CardHeader>
                 <CardContent className="flex flex-col items-center gap-4">
                     <Avatar className="h-32 w-32">
@@ -99,21 +105,21 @@ export default function ProfilePage() {
                     </Avatar>
                     <Input id="avatar-upload" type="file" accept="image/*" onChange={handleAvatarUpload} className="hidden" />
                     <Button asChild variant="outline">
-                        <label htmlFor="avatar-upload">{isUploading ? "Uploading..." : "Change Avatar"}</label>
+                        <label htmlFor="avatar-upload">{isUploading ? t('avatar.uploading') : t('avatar.change')}</label>
                     </Button>
                 </CardContent>
             </Card>
 
             <Card className="lg:col-span-2 lg:row-span-2 flex flex-col">
                 <CardHeader>
-                    <CardTitle>Profile Information</CardTitle>
-                    <CardDescription>Update your account details. Username cannot be changed.</CardDescription>
+                    <CardTitle>{t('form.title')}</CardTitle>
+                    <CardDescription>{t('form.description')}</CardDescription>
                 </CardHeader>
                 <CardContent className="flex flex-1 flex-col justify-between">
                     <Form {...form}>
                         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                             <FormItem>
-                                <FormLabel>Username</FormLabel>
+                                <FormLabel>{t('form.username')}</FormLabel>
                                 <Input disabled value={user.username} />
                             </FormItem>
                             <FormField
@@ -121,9 +127,9 @@ export default function ProfilePage() {
                                 name="nickname"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Nickname</FormLabel>
+                                        <FormLabel>{t('form.nickname')}</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="Your display name" {...field} />
+                                            <Input placeholder={t('form.nicknamePlaceholder')} {...field} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -134,21 +140,21 @@ export default function ProfilePage() {
                                 name="signature"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Signature</FormLabel>
+                                        <FormLabel>{t('form.signature')}</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="A short bio" {...field} />
+                                            <Input placeholder={t('form.signaturePlaceholder')} {...field} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
                                 )}
                             />
-                            <Button type="submit" disabled={form.formState.isSubmitting}>
-                                {form.formState.isSubmitting ? 'Saving...' : 'Save Changes'}
+                            <Button type="submit" disabled={isSubmitting}>
+                                {isSubmitting ? t('form.saving') : t('form.saveChanges')}
                             </Button>
                         </form>
                     </Form>
                     <div className="border-t pt-6 mt-6">
-                        <Button variant="destructive" onClick={handleLogout}>Log Out</Button>
+                        <Button variant="destructive" onClick={handleLogout}>{t('logout')}</Button>
                     </div>
                 </CardContent>
             </Card>

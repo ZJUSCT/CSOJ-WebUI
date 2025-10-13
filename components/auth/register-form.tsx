@@ -26,21 +26,23 @@ import { useToast } from "@/hooks/use-toast";
 import useSWR from "swr";
 import { AuthStatus } from "@/lib/types";
 import { Skeleton } from "../ui/skeleton";
-
-
-const formSchema = z.object({
-  username: z.string().min(3, "Username must be at least 3 characters"),
-  nickname: z.string().min(1, "Nickname is required"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-});
+import { useTranslations } from "next-intl";
 
 const fetcher = (url: string) => api.get(url).then(res => res.data.data);
 
 
 export function RegisterForm() {
+  const t = useTranslations('auth.register');
   const router = useRouter();
   const { toast } = useToast();
   
+  // Define schema using t() for localized error messages
+  const formSchema = z.object({
+    username: z.string().min(3, t('form.usernameMinLength')),
+    nickname: z.string().min(1, t('form.nicknameRequired')),
+    password: z.string().min(6, t('form.passwordMinLength')),
+  });
+
   const { data: authStatus, isLoading } = useSWR<AuthStatus>('/auth/status', fetcher);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -57,29 +59,29 @@ export function RegisterForm() {
       const response = await api.post("/auth/local/register", values);
       if (response.data.code === 0) {
         toast({
-          title: "Registration successful!",
-          description: "You can now log in with your new account.",
+          title: t('toast.successTitle'),
+          description: t('toast.successDescription'),
         });
         router.push("/login");
       } else {
-        throw new Error(response.data.message || "Registration failed");
+        throw new Error(response.data.message || t('toast.failDefault'));
       }
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Registration failed",
+        title: t('toast.failTitle'),
         description: error.response?.data?.message || error.message,
       });
     }
   };
   
-    if (isLoading) {
+  if (isLoading) {
     return (
        <Card>
         <CardHeader>
-          <CardTitle>Create an Account</CardTitle>
+          <CardTitle>{t('title')}</CardTitle>
           <CardDescription>
-            Checking registration availability...
+            {t('loadingDescription')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -96,17 +98,17 @@ export function RegisterForm() {
       return (
         <Card>
             <CardHeader>
-                <CardTitle>Registration Disabled</CardTitle>
+                <CardTitle>{t('disabled.title')}</CardTitle>
                 <CardDescription>
-                    Account registration with username and password is not available.
+                    {t('disabled.description')}
                 </CardDescription>
             </CardHeader>
             <CardContent>
                 <p className="text-sm text-muted-foreground">
-                    Please return to the login page and use an alternative method.
+                    {t('disabled.instruction')}
                 </p>
                 <Button asChild className="mt-4 w-full">
-                    <Link href="/login">Back to Login</Link>
+                    <Link href="/login">{t('disabled.backToLogin')}</Link>
                 </Button>
             </CardContent>
         </Card>
@@ -116,9 +118,9 @@ export function RegisterForm() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Create an Account</CardTitle>
+        <CardTitle>{t('title')}</CardTitle>
         <CardDescription>
-          Enter your details to create a new CSOJ account.
+          {t('description')}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -129,7 +131,7 @@ export function RegisterForm() {
               name="username"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Username</FormLabel>
+                  <FormLabel>{t('form.username')}</FormLabel>
                   <FormControl>
                     <Input placeholder="unique_username" {...field} />
                   </FormControl>
@@ -142,9 +144,9 @@ export function RegisterForm() {
               name="nickname"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Nickname</FormLabel>
+                  <FormLabel>{t('form.nickname')}</FormLabel>
                   <FormControl>
-                    <Input placeholder="Your display name" {...field} />
+                    <Input placeholder={t('form.nicknamePlaceholder')} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -155,7 +157,7 @@ export function RegisterForm() {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Password</FormLabel>
+                  <FormLabel>{t('form.password')}</FormLabel>
                   <FormControl>
                     <Input type="password" placeholder="********" {...field} />
                   </FormControl>
@@ -168,14 +170,14 @@ export function RegisterForm() {
               className="w-full"
               disabled={form.formState.isSubmitting}
             >
-              {form.formState.isSubmitting ? "Creating Account..." : "Register"}
+              {form.formState.isSubmitting ? t('form.creatingAccount') : t('form.registerButton')}
             </Button>
           </form>
         </Form>
         <div className="mt-4 text-center text-sm">
-          Already have an account?{" "}
+          {t('alreadyHaveAccount')}{" "}
           <Link href="/login" className="underline">
-            Login
+            {t('loginLink')}
           </Link>
         </div>
       </CardContent>

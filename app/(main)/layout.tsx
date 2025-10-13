@@ -3,8 +3,11 @@ import withAuth from "@/components/layout/with-auth";
 import { MainNav } from "@/components/layout/main-nav";
 import { UserNav } from "@/components/layout/user-nav";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
+import {useTranslations} from 'next-intl';
 
 function MainLayout({ children }: { children: React.ReactNode }) {
+  const t = useTranslations('home');
+
   return (
     <div className="flex min-h-screen w-full flex-col">
       <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6 z-50">
@@ -21,24 +24,28 @@ function MainLayout({ children }: { children: React.ReactNode }) {
       </main>
       <footer className="mt-auto border-t py-4">
         <div className="container mx-auto text-center text-sm text-muted-foreground">
-          Powered by{" "}
-          <a
-            href="https://github.com/ZJUSCT/CSOJ"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="font-medium text-primary underline-offset-4 hover:underline"
-          >
-            ZJUSCT/CSOJ
-          </a>{" "}
-          &{" "}
-          <a
-            href="https://github.com/ZJUSCT/CSOJ-WebUI"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="font-medium text-primary underline-offset-4 hover:underline"
-          >
-            ZJUSCT/CSOJ-WebUI
-          </a>
+          {t.rich('power_by', {
+            github1: (chunks) => (
+              <a
+                href="https://github.com/ZJUSCT/CSOJ"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium text-primary underline-offset-4 hover:underline"
+              >
+                {chunks}
+              </a>
+            ),
+            github2: (chunks) => (
+              <a
+                href="https://github.com/ZJUSCT/CSOJ-WebUI"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium text-primary underline-offset-4 hover:underline"
+              >
+                {chunks}
+              </a>
+            ),
+          })}
         </div>
       </footer>
     </div>

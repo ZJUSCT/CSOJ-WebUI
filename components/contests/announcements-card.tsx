@@ -9,10 +9,13 @@ import { Megaphone } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 import { Separator } from '../ui/separator';
 import MarkdownViewer from '../shared/markdown-viewer';
+import { useTranslations } from 'next-intl';
 
 const fetcher = (url: string) => api.get(url).then(res => res.data.data);
 
 export function AnnouncementsCard({ contestId }: { contestId: string }) {
+    const t = useTranslations('contests.announcements');
+    
     const { data: announcements, error, isLoading } = useSWR<Announcement[]>(`/contests/${contestId}/announcements`, fetcher, {
         refreshInterval: 60000 // Refresh every minute
     });
@@ -22,7 +25,7 @@ export function AnnouncementsCard({ contestId }: { contestId: string }) {
             <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                     <Megaphone />
-                    Announcements
+                    {t('title')}
                 </CardTitle>
             </CardHeader>
             <CardContent>
@@ -35,7 +38,7 @@ export function AnnouncementsCard({ contestId }: { contestId: string }) {
                         <Skeleton className="h-4 w-1/2" />
                     </div>
                 )}
-                {error && <p className="text-sm text-destructive">Failed to load announcements.</p>}
+                {error && <p className="text-sm text-destructive">{t('loadFail')}</p>}
                 {!isLoading && announcements && announcements.length > 0 ? (
                     <div className="space-y-6">
                         {announcements.map((ann, index) => (
@@ -54,7 +57,7 @@ export function AnnouncementsCard({ contestId }: { contestId: string }) {
                         ))}
                     </div>
                 ) : !isLoading && (
-                    <p className="text-sm text-muted-foreground text-center py-4">No announcements yet.</p>
+                    <p className="text-sm text-muted-foreground text-center py-4">{t('none')}</p>
                 )}
             </CardContent>
         </Card>
