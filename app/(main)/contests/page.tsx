@@ -99,7 +99,7 @@ function ContestTimeline({ contest }: { contest: Contest }) {
     
     return (
         <div className="pt-2 pb-2">
-            <div className="relative h-2 bg-gray-200 rounded-full overflow-hidden">
+            <div className="relative h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                 {/* The colored progress bar */}
                 <div
                     className="h-full absolute"
@@ -204,7 +204,6 @@ function ContestCard({ contest }: { contest: Contest }) {
     );
 }
 
-
 function ContestList() {
     const { data: contests, error, isLoading } = useSWR<Record<string, Contest>>('/contests', fetcher);
 
@@ -230,7 +229,6 @@ function ContestList() {
         </div>
     );
 }
-
 
 function ProblemCard({ problemId }: { problemId: string }) {
     const { data: problem, isLoading } = useSWR<Problem>(`/problems/${problemId}`, fetcher);
@@ -279,28 +277,44 @@ function ContestProblems({ contestId }: { contestId: string }) {
     );
 }
 
-function ContestTrend({ contestId }: { contestId: string }) {
-    const { data: trendData, error, isLoading } = useSWR<TrendEntry[]>(`/contests/${contestId}/trend`, fetcher, { refreshInterval: 30000 });
+function ContestTrend({ contest }: { contest: Contest }) {
+    const { data: trendData, error, isLoading } = useSWR<TrendEntry[]>(`/contests/${contest.id}/trend`, fetcher, { refreshInterval: 30000 });
 
-    if (isLoading) return <Skeleton className="h-96 w-full" />;
+    if (isLoading) return <Skeleton className="h-[500px] w-full" />;
     if (error) return <div>Failed to load trend data.</div>;
-    if (!trendData || trendData.length === 0) return <div>No trend data available yet.</div>;
-
+    if (!trendData || trendData.length === 0) {
+        return (
+            <Card>
+                <CardHeader>
+                    <CardTitle>Score Trend</CardTitle>
+                    <CardDescription>Score progression of top users over time.</CardDescription>
+                </CardHeader>
+                <CardContent className="h-96 w-full flex items-center justify-center">
+                    <p className="text-muted-foreground">No trend data available yet.</p>
+                </CardContent>
+            </Card>
+        );
+    }
+    
     return (
         <Card>
             <CardHeader>
                 <CardTitle>Score Trend</CardTitle>
                 <CardDescription>Score progression of top users over time.</CardDescription>
             </CardHeader>
-            <CardContent className="h-96 w-full">
-                <EchartsTrendChart trendData={trendData} />
+            <CardContent className="h-[500px] w-full">
+                <EchartsTrendChart 
+                    trendData={trendData} 
+                    contestStartTime={contest.starttime}
+                    contestEndTime={contest.endtime}
+                />
             </CardContent>
         </Card>
     );
 }
 
-function LeaderboardRow({ entry, rank, problemIds }: { entry: LeaderboardEntry, rank: number, problemIds: string[] }) {
 
+function LeaderboardRow({ entry, rank, problemIds }: { entry: LeaderboardEntry, rank: number, problemIds: string[] }) {
     const getRankColor = (rank: number) => {
         if (rank === 1) return 'text-yellow-400';
         if (rank === 2) return 'text-gray-400';
@@ -341,7 +355,6 @@ function LeaderboardRow({ entry, rank, problemIds }: { entry: LeaderboardEntry, 
         </TableRow>
     );
 }
-
 
 function ContestLeaderboard({ contestId }: { contestId: string }) {
     const { data: contest, error: contestError, isLoading: isContestLoading } = useSWR<Contest>(`/contests/${contestId}`, fetcher);
@@ -388,7 +401,7 @@ function ContestLeaderboard({ contestId }: { contestId: string }) {
 }
 
 function ContestDetailView({ contestId, view }: { contestId: string, view: string }) {
-    const { data: contest } = useSWR<Contest>(`/contests/${contestId}`, fetcher);
+    const { data: contest, isLoading: isContestLoading } = useSWR<Contest>(`/contests/${contestId}`, fetcher);
     const { data: history, isLoading: isHistoryLoading } = useSWR<ScoreHistoryPoint[]>(`/contests/${contestId}/history`, fetcher);
     const { mutate } = useSWRConfig();
     const { toast } = useToast();
@@ -415,17 +428,39 @@ function ContestDetailView({ contestId, view }: { contestId: string, view: strin
     const now = new Date();
     const canRegister = contest && now >= new Date(contest.starttime) && now <= new Date(contest.endtime);
 
+    if (isContestLoading) {
+        return (
+            <div className="space-y-6">
+                <Skeleton className="h-10 w-1/2" />
+                <div className="grid gap-8 lg:grid-cols-4 items-start">
+                    <div className="lg:col-span-3 space-y-6">
+                        <Skeleton className="h-12 w-full" />
+                        <Skeleton className="h-96 w-full" />
+                    </div>
+                    <div className="space-y-6 lg:sticky lg:top-20">
+                        <Skeleton className="h-48 w-full" />
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    if (!contest) {
+        return <div>Contest not found.</div>;
+    }
+
     return (
         <div className="space-y-6">
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                <h1 className="text-3xl font-bold">{contest?.name || "Contest"}</h1>
+                <h1 className="text-3xl font-bold">{contest.name}</h1>
                 {canRegister && (
                     isRegistered ? (
                         <Button disabled variant="secondary">
-                            <CheckCircle /> Registered
+                            <CheckCircle className="mr-2 h-4 w-4" /> Registered
                         </Button>
                     ) : (
                         <Button onClick={handleRegister} disabled={isHistoryLoading}>
+                            {isHistoryLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Edit3 className="mr-2 h-4 w-4" />}
                             {isHistoryLoading ? "Loading..." : "Register for Contest"}
                         </Button>
                     )
@@ -446,10 +481,10 @@ function ContestDetailView({ contestId, view }: { contestId: string, view: strin
                     </Tabs>
                     <div>
                         {view === 'leaderboard' ? (
-                          <div className="space-y-6">
-                            <ContestTrend contestId={contestId} />
-                            <ContestLeaderboard contestId={contestId} />
-                          </div>
+                            <div className="space-y-6">
+                                <ContestTrend contest={contest} />
+                                <ContestLeaderboard contestId={contestId} />
+                            </div>
                         ) : (
                             <ContestProblems contestId={contestId} />
                         )}
@@ -463,6 +498,7 @@ function ContestDetailView({ contestId, view }: { contestId: string, view: strin
         </div>
     );
 }
+
 
 function ContestsPageContent() {
     const searchParams = useSearchParams();
