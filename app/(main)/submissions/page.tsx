@@ -102,7 +102,6 @@ function QueuePosition({ submissionId, cluster }: { submissionId: string, cluste
 }
 
 
-// --- [修改] Component for submission details ---
 function SubmissionDetails({ submissionId }: { submissionId: string }) {
     const { toast } = useToast();
     const { data: submission, error, isLoading, mutate } = useSWR<Submission>(`/submissions/${submissionId}`, fetcher, {
@@ -138,12 +137,11 @@ function SubmissionDetails({ submissionId }: { submissionId: string }) {
                         <CardDescription>Real-time output from the judge. Select a step to view its log.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        {problem && submission ? <SubmissionLogViewer submission={submission} problem={problem} onStatusUpdate={mutate} /> : <Skeleton className="h-96 w-full" />}
+                        {problem && submission ? <SubmissionLogViewer submission={submission} problem={problem} onStatusUpdate={mutate} /> : <Skeleton className="h-[60vh] w-full" />}
                     </CardContent>
                 </Card>
             </div>
             
-            {/* --- [修改] 右侧合并为一个卡片 --- */}
             <div className="space-y-6">
                  <Card>
                     <CardHeader>
@@ -196,7 +194,6 @@ function SubmissionDetails({ submissionId }: { submissionId: string }) {
                             <span>{submission.node || 'N/A'}</span>
                         </div>
                         
-                        {/* --- [新增] Judge Info Section (conditionally rendered) --- */}
                         {submission.info && Object.keys(submission.info).length > 0 && (
                              <>
                                 <Separator className="my-4" />
