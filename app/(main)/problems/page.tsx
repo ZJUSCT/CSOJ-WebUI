@@ -1,6 +1,7 @@
 "use client";
 import { useSearchParams } from 'next/navigation';
 import useSWR from 'swr';
+import { useTranslations } from 'next-intl'; // Import useTranslations
 import api from '@/lib/api';
 import { Problem, Submission } from '@/lib/types';
 import MarkdownViewer from '@/components/shared/markdown-viewer';
@@ -16,6 +17,7 @@ import { Suspense } from 'react';
 const fetcher = (url: string) => api.get(url).then(res => res.data.data);
 
 function UserSubmissionsForProblem({ problemId }: { problemId: string }) {
+    const t = useTranslations('ProblemDetails');
     const { data: allSubmissions, isLoading } = useSWR<Submission[]>('/submissions', fetcher);
 
     if (isLoading) return <Skeleton className="h-40 w-full" />;
@@ -23,17 +25,17 @@ function UserSubmissionsForProblem({ problemId }: { problemId: string }) {
     const problemSubmissions = allSubmissions?.filter(sub => sub.problem_id === problemId) || [];
 
     if (problemSubmissions.length === 0) {
-        return <p className="text-sm text-muted-foreground">You have not made any submissions for this problem yet.</p>;
+        return <p className="text-sm text-muted-foreground">{t('submissions.none')}</p>;
     }
     
     return (
         <Table>
             <TableHeader>
                 <TableRow>
-                    <TableHead>Submission ID</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Score</TableHead>
-                    <TableHead>Date</TableHead>
+                    <TableHead>{t('submissions.id')}</TableHead>
+                    <TableHead>{t('submissions.status')}</TableHead>
+                    <TableHead>{t('submissions.score')}</TableHead>
+                    <TableHead>{t('submissions.date')}</TableHead>
                 </TableRow>
             </TableHeader>
             <TableBody>
@@ -55,17 +57,25 @@ function UserSubmissionsForProblem({ problemId }: { problemId: string }) {
 }
 
 function ProblemDetails() {
+    const t = useTranslations('ProblemDetails');
     const searchParams = useSearchParams();
     const problemId = searchParams.get('id');
     const { data: problem, error, isLoading } = useSWR<Problem>(problemId ? `/problems/${problemId}` : null, fetcher);
 
     if (!problemId) {
-        return <Card><CardHeader><CardTitle>No Problem Selected</CardTitle><CardDescription>Please select a problem to view its details.</CardDescription></CardHeader></Card>;
+        return (
+            <Card>
+                <CardHeader>
+                    <CardTitle>{t('noProblem.title')}</CardTitle>
+                    <CardDescription>{t('noProblem.description')}</CardDescription>
+                </CardHeader>
+            </Card>
+        );
     }
     
     if (isLoading) return <div><Skeleton className="h-screen w-full" /></div>;
-    if (error) return <div>Failed to load problem. You may not have access to it yet.</div>;
-    if (!problem) return <div>Problem not found.</div>;
+    if (error) return <div>{t('details.loadFail')}</div>;
+    if (!problem) return <div>{t('details.notFound')}</div>;
 
     return (
         <div className="grid gap-8 lg:grid-cols-2">
@@ -73,7 +83,7 @@ function ProblemDetails() {
                 <Card>
                     <CardHeader>
                         <CardTitle className="text-2xl">{problem.name}</CardTitle>
-                        <CardDescription>Problem ID: {problem.id}</CardDescription>
+                        <CardDescription>{t('details.id')}: {problem.id}</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <MarkdownViewer 
@@ -87,7 +97,7 @@ function ProblemDetails() {
             <div className="space-y-6">
                 <Card>
                     <CardHeader>
-                        <CardTitle>Submit Solution</CardTitle>
+                        <CardTitle>{t('submitForm.title')}</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <SubmissionUploadForm problemId={problem.id} uploadLimits={problem.upload} />
@@ -95,7 +105,7 @@ function ProblemDetails() {
                 </Card>
                 <Card>
                     <CardHeader>
-                        <CardTitle>Your Submissions</CardTitle>
+                        <CardTitle>{t('submissions.title')}</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <UserSubmissionsForProblem problemId={problem.id} />

@@ -2,6 +2,7 @@
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
 import useSWR, { useSWRConfig } from 'swr';
+import { useTranslations } from 'next-intl'; // Import useTranslations
 import { Contest, Problem, LeaderboardEntry, TrendEntry, ScoreHistoryPoint } from '@/lib/types';
 import api from '@/lib/api';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -24,6 +25,7 @@ import { AnnouncementsCard } from '@/components/contests/announcements-card';
 const fetcher = (url: string) => api.get(url).then(res => res.data.data);
 
 function ContestTimeline({ contest }: { contest: Contest }) {
+    const t = useTranslations('contests');
     // Using a state for 'now' to make the component re-render and animate
     const [now, setNow] = useState(new Date().getTime());
 
@@ -39,7 +41,7 @@ function ContestTimeline({ contest }: { contest: Contest }) {
     const totalDuration = endTime - startTime;
 
     if (totalDuration <= 0) {
-        return <div className="text-center text-sm text-muted-foreground">Invalid contest duration.</div>;
+        return <div className="text-center text-sm text-muted-foreground">{t('invalidDuration')}</div>;
     }
 
     const hasStarted = now >= startTime;
@@ -72,17 +74,17 @@ function ContestTimeline({ contest }: { contest: Contest }) {
 
     switch (status) {
         case 'upcoming':
-            statusText = 'Upcoming';
+            statusText = t('status.upcoming');
             statusColorClass = 'text-blue-500';
             barColor = 'rgb(59 130 246)'; // blue-500
             break;
         case 'ended':
-            statusText = 'Ended';
+            statusText = t('status.ended');
             statusColorClass = 'text-gray-500';
             barColor = 'rgb(156 163 175)'; // gray-400
             break;
         case 'ongoing':
-            statusText = 'Live';
+            statusText = t('status.live');
             statusColorClass = 'text-green-500';
             // Hue transitions from 120 (green) -> 60 (yellow) -> 0 (red)
             const hue = 120 * (1 - progressInContest);
@@ -110,14 +112,14 @@ function ContestTimeline({ contest }: { contest: Contest }) {
                 <div
                     className="absolute top-0 h-full w-0.5 bg-gray-500 opacity-75"
                     style={{ left: `${startPos}%` }}
-                    title={`Starts: ${format(new Date(startTime), 'MMM d, HH:mm')}`}
+                    title={`${t('starts')}: ${format(new Date(startTime), 'MMM d, HH:mm')}`}
                 />
 
                 {/* End time vertical marker */}
                 <div
                     className="absolute top-0 h-full w-0.5 bg-gray-500 opacity-75"
                     style={{ left: `${endPos}%` }}
-                    title={`Ends: ${format(new Date(endTime), 'MMM d, HH:mm')}`}
+                    title={`${t('ends')}: ${format(new Date(endTime), 'MMM d, HH:mm')}`}
                 />
             </div>
 
@@ -130,6 +132,7 @@ function ContestTimeline({ contest }: { contest: Contest }) {
 }
 
 function ContestCard({ contest }: { contest: Contest }) {
+    const t = useTranslations('contests');
     const { data: history, isLoading: isHistoryLoading } = useSWR<ScoreHistoryPoint[]>(`/contests/${contest.id}/history`, fetcher);
     const { mutate } = useSWRConfig();
     const { toast } = useToast();
@@ -146,10 +149,10 @@ function ContestCard({ contest }: { contest: Contest }) {
         setIsRegistering(true);
         try {
             await api.post(`/contests/${contest.id}/register`);
-            toast({ title: "Success", description: "You have successfully registered for the contest." });
+            toast({ title: t('registration.successTitle'), description: t('registration.successDescription') });
             mutate(`/contests/${contest.id}/history`);
         } catch (error: any) {
-            toast({ variant: "destructive", title: "Registration Failed", description: error.response?.data?.message || "An unexpected error occurred." });
+            toast({ variant: "destructive", title: t('registration.failTitle'), description: error.response?.data?.message || t('registration.unexpectedError') });
         } finally {
             setIsRegistering(false);
         }
@@ -161,11 +164,11 @@ function ContestCard({ contest }: { contest: Contest }) {
     const hasStarted = now >= startTime;
     const hasEnded = now > endTime;
     
-    let statusText = "Upcoming";
-    if (hasStarted && !hasEnded) statusText = "Ongoing";
-    if (hasEnded) statusText = "Finished";
+    let statusText = t('status.upcoming');
+    if (hasStarted && !hasEnded) statusText = t('status.ongoing');
+    if (hasEnded) statusText = t('status.finished');
 
-    const canRegister = statusText === "Ongoing";
+    const canRegister = statusText === t('status.ongoing');
     const isLoadingRegistration = isHistoryLoading || isRegistering;
 
     return (
@@ -173,29 +176,29 @@ function ContestCard({ contest }: { contest: Contest }) {
             <CardHeader>
                 <CardTitle className="text-xl">{contest.name}</CardTitle>
                 <CardDescription>
-                    <span className={`font-semibold ${statusText === 'Ongoing' ? 'text-green-500' : statusText === 'Finished' ? 'text-red-500' : 'text-blue-500'}`}>{statusText}</span>
+                    <span className={`font-semibold ${statusText === t('status.ongoing') ? 'text-green-500' : statusText === t('status.finished') ? 'text-red-500' : 'text-blue-500'}`}>{statusText}</span>
                 </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4 text-sm text-muted-foreground">
                 <div className="space-y-2">
                     <div className="flex items-center gap-2"><Calendar className="h-4 w-4" /><span>{format(startTime, 'MMM d, yyyy')} - {format(endTime, 'MMM d, yyyy')}</span></div>
-                    <div className="flex items-center gap-2"><Clock className="h-4 w-4" /><span>{format(startTime, 'p')} to {format(endTime, 'p')}</span></div>
+                    <div className="flex items-center gap-2"><Clock className="h-4 w-4" /><span>{format(startTime, 'p')} {t('to')} {format(endTime, 'p')}</span></div>
                 </div>
                 <ContestTimeline contest={contest} />
             </CardContent>
             <CardFooter className="flex justify-between items-center">
                 <Link href={`/contests?id=${contest.id}`} passHref>
-                    <Button>View Details</Button>
+                    <Button>{t('viewDetails')}</Button>
                 </Link>
                 {canRegister && (
                     isRegistered ? (
                         <Button disabled variant="secondary">
-                            <CheckCircle className="mr-2 h-4 w-4" /> Registered
+                            <CheckCircle className="mr-2 h-4 w-4" /> {t('registered')}
                         </Button>
                     ) : (
                         <Button onClick={handleRegister} disabled={isLoadingRegistration} variant="outline">
                             {isLoadingRegistration ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Edit3 className="mr-2 h-4 w-4" />}
-                            {isLoadingRegistration ? "Checking..." : "Register"}
+                            {isLoadingRegistration ? t('checking') : t('register')}
                         </Button>
                     )
                 )}
@@ -205,6 +208,7 @@ function ContestCard({ contest }: { contest: Contest }) {
 }
 
 function ContestList() {
+    const t = useTranslations('contests');
     const { data: contests, error, isLoading } = useSWR<Record<string, Contest>>('/contests', fetcher);
 
     if (isLoading) return (
@@ -218,8 +222,8 @@ function ContestList() {
             ))}
         </div>
     );
-    if (error) return <div>Failed to load contests.</div>;
-    if (!contests || Object.keys(contests).length === 0) return <div>No contests available.</div>;
+    if (error) return <div>{t('list.loadFail')}</div>;
+    if (!contests || Object.keys(contests).length === 0) return <div>{t('list.noContests')}</div>;
 
     return (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -231,6 +235,7 @@ function ContestList() {
 }
 
 function ProblemCard({ problemId }: { problemId: string }) {
+    const t = useTranslations('contests');
     const { data: problem, isLoading } = useSWR<Problem>(`/problems/${problemId}`, fetcher);
     if (isLoading) return <Skeleton className="h-24 w-full" />;
     return (
@@ -240,22 +245,23 @@ function ProblemCard({ problemId }: { problemId: string }) {
                 <BookOpen className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-                <div className="text-xs text-muted-foreground mb-4">Problem ID: {problemId}</div>
-                <Link href={`/problems?id=${problemId}`}><Button size="sm">View Problem</Button></Link>
+                <div className="text-xs text-muted-foreground mb-4">{t('problemCard.id')}: {problemId}</div>
+                <Link href={`/problems?id=${problemId}`}><Button size="sm">{t('problemCard.view')}</Button></Link>
             </CardContent>
         </Card>
     );
 }
 
 function ContestProblems({ contestId }: { contestId: string }) {
+    const t = useTranslations('contests');
     const { data: contest, error, isLoading } = useSWR<Contest>(`/contests/${contestId}`, fetcher);
     if (isLoading) return <Skeleton className="h-64 w-full" />;
-    if (error) return <div>Failed to load contest details.</div>;
-    if (!contest) return <div>Contest not found.</div>;
+    if (error) return <div>{t('detail.loadFail')}</div>;
+    if (!contest) return <div>{t('detail.notFound')}</div>;
     return (
         <div className="space-y-6">
             <Card>
-                <CardHeader><CardTitle>Contest Description</CardTitle></CardHeader>
+                <CardHeader><CardTitle>{t('description.title')}</CardTitle></CardHeader>
                 <CardContent>
                     <MarkdownViewer 
                         content={contest.description} 
@@ -266,8 +272,8 @@ function ContestProblems({ contestId }: { contestId: string }) {
             </Card>
             <Card>
                 <CardHeader>
-                    <CardTitle>Problems</CardTitle>
-                    <CardDescription>{contest.problem_ids.length > 0 ? "Select a problem to view its details and submit your solution." : "This contest is not active or has no problems."}</CardDescription>
+                    <CardTitle>{t('problems.title')}</CardTitle>
+                    <CardDescription>{contest.problem_ids.length > 0 ? t('problems.instruction') : t('problems.none')}</CardDescription>
                 </CardHeader>
                 <CardContent className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                     {contest.problem_ids.map(problemId => <ProblemCard key={problemId} problemId={problemId} />)}
@@ -278,19 +284,20 @@ function ContestProblems({ contestId }: { contestId: string }) {
 }
 
 function ContestTrend({ contest }: { contest: Contest }) {
+    const t = useTranslations('contests');
     const { data: trendData, error, isLoading } = useSWR<TrendEntry[]>(`/contests/${contest.id}/trend`, fetcher, { refreshInterval: 30000 });
 
     if (isLoading) return <Skeleton className="h-[500px] w-full" />;
-    if (error) return <div>Failed to load trend data.</div>;
+    if (error) return <div>{t('trend.loadFail')}</div>;
     if (!trendData || trendData.length === 0) {
         return (
             <Card>
                 <CardHeader>
-                    <CardTitle>Score Trend</CardTitle>
-                    <CardDescription>Score progression of top users over time.</CardDescription>
+                    <CardTitle>{t('trend.title')}</CardTitle>
+                    <CardDescription>{t('trend.description')}</CardDescription>
                 </CardHeader>
                 <CardContent className="h-96 w-full flex items-center justify-center">
-                    <p className="text-muted-foreground">No trend data available yet.</p>
+                    <p className="text-muted-foreground">{t('trend.none')}</p>
                 </CardContent>
             </Card>
         );
@@ -299,8 +306,8 @@ function ContestTrend({ contest }: { contest: Contest }) {
     return (
         <Card>
             <CardHeader>
-                <CardTitle>Score Trend</CardTitle>
-                <CardDescription>Score progression of top users over time.</CardDescription>
+                <CardTitle>{t('trend.title')}</CardTitle>
+                <CardDescription>{t('trend.description')}</CardDescription>
             </CardHeader>
             <CardContent className="h-[500px] w-full">
                 <EchartsTrendChart 
@@ -315,6 +322,7 @@ function ContestTrend({ contest }: { contest: Contest }) {
 
 
 function LeaderboardRow({ entry, rank, problemIds }: { entry: LeaderboardEntry, rank: number, problemIds: string[] }) {
+    // No translation needed for LeaderboardRow itself
     const getRankColor = (rank: number) => {
         if (rank === 1) return 'text-yellow-400';
         if (rank === 2) return 'text-gray-400';
@@ -357,28 +365,29 @@ function LeaderboardRow({ entry, rank, problemIds }: { entry: LeaderboardEntry, 
 }
 
 function ContestLeaderboard({ contestId }: { contestId: string }) {
+    const t = useTranslations('contests');
     const { data: contest, error: contestError, isLoading: isContestLoading } = useSWR<Contest>(`/contests/${contestId}`, fetcher);
     const { data: leaderboard, error: leaderboardError, isLoading: isLeaderboardLoading } = useSWR<LeaderboardEntry[]>(`/contests/${contestId}/leaderboard`, fetcher, { refreshInterval: 15000 });
 
     const isLoading = isContestLoading || isLeaderboardLoading;
     if (isLoading) return <Skeleton className="h-64 w-full" />;
-    if (contestError || leaderboardError) return <div>Failed to load leaderboard data.</div>;
-    if (!leaderboard || leaderboard.length === 0) return <div>No scores recorded yet.</div>;
-    if (!contest) return <div>Could not load contest details for leaderboard header.</div>;
+    if (contestError || leaderboardError) return <div>{t('leaderboard.loadFail')}</div>;
+    if (!leaderboard || leaderboard.length === 0) return <div>{t('leaderboard.none')}</div>;
+    if (!contest) return <div>{t('leaderboard.contestDetailsFail')}</div>;
 
     const problemIds = contest.problem_ids;
 
     return (
         <Card>
             <CardHeader>
-                <CardTitle>Leaderboard</CardTitle>
+                <CardTitle>{t('leaderboard.title')}</CardTitle>
             </CardHeader>
             <CardContent>
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead className="w-[80px]">Rank</TableHead>
-                            <TableHead>User</TableHead>
+                            <TableHead className="w-[80px]">{t('leaderboard.rank')}</TableHead>
+                            <TableHead>{t('leaderboard.user')}</TableHead>
                             {problemIds.map((id, index) => (
                                 <TableHead key={id} className="text-center">
                                     <Link href={`/problems?id=${id}`} className="hover:underline" title={id}>
@@ -386,7 +395,7 @@ function ContestLeaderboard({ contestId }: { contestId: string }) {
                                     </Link>
                                 </TableHead>
                             ))}
-                            <TableHead className="text-right">Total Score</TableHead>
+                            <TableHead className="text-right">{t('leaderboard.totalScore')}</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -401,6 +410,7 @@ function ContestLeaderboard({ contestId }: { contestId: string }) {
 }
 
 function ContestDetailView({ contestId, view }: { contestId: string, view: string }) {
+    const t = useTranslations('contests');
     const { data: contest, isLoading: isContestLoading } = useSWR<Contest>(`/contests/${contestId}`, fetcher);
     const { data: history, isLoading: isHistoryLoading } = useSWR<ScoreHistoryPoint[]>(`/contests/${contestId}/history`, fetcher);
     const { mutate } = useSWRConfig();
@@ -418,10 +428,10 @@ function ContestDetailView({ contestId, view }: { contestId: string, view: strin
     const handleRegister = async () => {
         try {
             await api.post(`/contests/${contestId}/register`);
-            toast({ title: "Success", description: "You have successfully registered for the contest." });
+            toast({ title: t('registration.successTitle'), description: t('registration.successDescription') });
             mutate(`/contests/${contestId}/history`);
         } catch (error: any) {
-            toast({ variant: "destructive", title: "Registration Failed", description: error.response?.data?.message || "An unexpected error occurred." });
+            toast({ variant: "destructive", title: t('registration.failTitle'), description: error.response?.data?.message || t('registration.unexpectedError') });
         }
     };
     
@@ -446,7 +456,7 @@ function ContestDetailView({ contestId, view }: { contestId: string, view: strin
     }
 
     if (!contest) {
-        return <div>Contest not found.</div>;
+        return <div>{t('detail.notFound')}</div>;
     }
 
     return (
@@ -456,12 +466,12 @@ function ContestDetailView({ contestId, view }: { contestId: string, view: strin
                 {canRegister && (
                     isRegistered ? (
                         <Button disabled variant="secondary">
-                            <CheckCircle className="mr-2 h-4 w-4" /> Registered
+                            <CheckCircle className="mr-2 h-4 w-4" /> {t('registered')}
                         </Button>
                     ) : (
                         <Button onClick={handleRegister} disabled={isHistoryLoading}>
                             {isHistoryLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Edit3 className="mr-2 h-4 w-4" />}
-                            {isHistoryLoading ? "Loading..." : "Register for Contest"}
+                            {isHistoryLoading ? t('loading') : t('registerForContest')}
                         </Button>
                     )
                 )}
@@ -472,10 +482,10 @@ function ContestDetailView({ contestId, view }: { contestId: string, view: strin
                     <Tabs value={view} className="w-full">
                         <TabsList className="grid w-full grid-cols-2">
                             <TabsTrigger value="problems" asChild>
-                                <Link href={`/contests?id=${contestId}&view=problems`}>Problems</Link>
+                                <Link href={`/contests?id=${contestId}&view=problems`}>{t('tabs.problems')}</Link>
                             </TabsTrigger>
                             <TabsTrigger value="leaderboard" asChild>
-                                <Link href={`/contests?id=${contestId}&view=leaderboard`}>Leaderboard</Link>
+                                <Link href={`/contests?id=${contestId}&view=leaderboard`}>{t('tabs.leaderboard')}</Link>
                             </TabsTrigger>
                         </TabsList>
                     </Tabs>

@@ -1,0 +1,203 @@
+{
+  "home": {
+    "power_by": "Powered by <github1>ZJUSCT/CSOJ</github1> & <github2>ZJUSCT/CSOJ-WebUI</github2>",
+    "contests": "Contests",
+    "submissions": "Submissions",
+    "profile": "Profile",
+    "theme": {
+      "toggleTheme": "Toggle theme",
+      "toggleToDark": "Switch to Dark mode",
+      "toggleToLight": "Switch to Light mode",
+      "toggleToSystem": "Switch to System mode"
+    },
+    "user": {
+      "profile": "Profile",
+      "mySubmissions": "My Submissions",
+      "logout": "Log out"
+    }
+  },
+  "contests": {
+    "invalidDuration": "Invalid contest duration.",
+    "starts": "Starts",
+    "ends": "Ends",
+    "to": "to",
+    "viewDetails": "View Details",
+    "registered": "Registered",
+    "checking": "Checking...",
+    "register": "Register",
+    "loading": "Loading...",
+    "registerForContest": "Register for Contest",
+    "status": {
+      "upcoming": "Upcoming",
+      "ongoing": "Ongoing",
+      "finished": "Finished",
+      "ended": "Ended",
+      "live": "Live"
+    },
+    "registration": {
+      "successTitle": "Success",
+      "successDescription": "You have successfully registered for the contest.",
+      "failTitle": "Registration Failed",
+      "unexpectedError": "An unexpected error occurred."
+    },
+    "list": {
+      "loadFail": "Failed to load contests.",
+      "noContests": "No contests available."
+    },
+    "detail": {
+      "loadFail": "Failed to load contest details.",
+      "notFound": "Contest not found."
+    },
+    "description": {
+      "title": "Contest Description"
+    },
+    "problems": {
+      "title": "Problems",
+      "instruction": "Select a problem to view its details and submit your solution.",
+      "none": "This contest is not active or has no problems."
+    },
+    "problemCard": {
+      "id": "Problem ID",
+      "view": "View Problem"
+    },
+    "trend": {
+      "title": "Score Trend",
+      "description": "Score progression of top users over time.",
+      "loadFail": "Failed to load trend data.",
+      "none": "No trend data available yet."
+    },
+    "leaderboard": {
+      "title": "Leaderboard",
+      "rank": "Rank",
+      "user": "User",
+      "totalScore": "Total Score",
+      "loadFail": "Failed to load leaderboard data.",
+      "none": "No scores recorded yet.",
+      "contestDetailsFail": "Could not load contest details for leaderboard header."
+    },
+    "tabs": {
+      "problems": "Problems",
+      "leaderboard": "Leaderboard"
+    },
+    "announcements": {
+      "title": "Announcements",
+      "loadFail": "Failed to load announcements.",
+      "none": "No announcements yet."
+    }
+  },
+  "ProblemDetails": {
+    "noProblem": {
+      "title": "No Problem Selected",
+      "description": "Please select a problem to view its details."
+    },
+    "details": {
+      "loadFail": "Failed to load problem. You may not have access to it yet.",
+      "notFound": "Problem not found.",
+      "id": "Problem ID"
+    },
+    "submitForm": {
+      "title": "Submit Solution"
+    },
+    "submissions": {
+      "title": "Your Submissions",
+      "none": "You have not made any submissions for this problem yet.",
+      "id": "Submission ID",
+      "status": "Status",
+      "score": "Score",
+      "date": "Date"
+    }
+  },
+  "Profile": {
+    "avatar": {
+      "title": "Avatar",
+      "description": "Update your profile picture.",
+      "change": "Change Avatar",
+      "uploading": "Uploading...",
+      "uploadSuccess": "Avatar updated successfully!",
+      "uploadFailTitle": "Upload failed",
+      "uploadFailDescription": "Could not upload avatar."
+    },
+    "form": {
+      "title": "Profile Information",
+      "description": "Update your account details. Username cannot be changed.",
+      "username": "Username",
+      "nickname": "Nickname",
+      "nicknamePlaceholder": "Your display name",
+      "signature": "Signature",
+      "signaturePlaceholder": "A short bio",
+      "saving": "Saving...",
+      "saveChanges": "Save Changes",
+      "updateSuccess": "Profile updated successfully!",
+      "updateFailTitle": "Update failed",
+      "updateFailDescription": "Could not update profile.",
+      "nicknameRequired": "Nickname is required"
+    },
+    "token": {
+      "title": "Authentication Token",
+      "description": "This is your current session token. Keep it secure and do not share it.",
+      "label": "Your Token",
+      "copySr": "Copy Token",
+      "copySuccessTitle": "Token Copied!",
+      "copySuccessDescription": "The authentication token has been copied to your clipboard.",
+      "expiresAt": "Expires At",
+      "timeRemaining": "Time Remaining",
+      "expired": "Expired"
+    },
+    "logout": "Log Out"
+  },
+  "auth": {
+    "login": {
+      "title": "Login to CSOJ",
+      "loadingDescription": "Checking available login methods...",
+      "descriptionLocal": "Enter your credentials or use an alternative login method.",
+      "descriptionExternal": "Please use an available login method.",
+      "form": {
+        "username": "Username",
+        "password": "Password",
+        "usernameRequired": "Username is required",
+        "passwordRequired": "Password is required",
+        "loginButton": "Login",
+        "loggingIn": "Logging in..."
+      },
+      "separatorText": "Or continue with",
+      "gitlabButton": "Login with GitLab",
+      "noAccount": "Don't have an account?",
+      "registerLink": "Register",
+      "toast": {
+        "successTitle": "Login successful!",
+        "failTitle": "Login failed",
+        "failDefault": "Login failed"
+      }
+    },
+    "register": {
+      "title": "Create an Account",
+      "loadingDescription": "Checking registration availability...",
+      "description": "Enter your details to create a new CSOJ account.",
+      "disabled": {
+        "title": "Registration Disabled",
+        "description": "Account registration with username and password is not available.",
+        "instruction": "Please return to the login page and use an alternative method.",
+        "backToLogin": "Back to Login"
+      },
+      "form": {
+        "username": "Username",
+        "nickname": "Nickname",
+        "password": "Password",
+        "nicknamePlaceholder": "Your display name",
+        "usernameMinLength": "Username must be at least 3 characters",
+        "nicknameRequired": "Nickname is required",
+        "passwordMinLength": "Password must be at least 6 characters",
+        "registerButton": "Register",
+        "creatingAccount": "Creating Account..."
+      },
+      "alreadyHaveAccount": "Already have an account?",
+      "loginLink": "Login",
+      "toast": {
+        "successTitle": "Registration successful!",
+        "successDescription": "You can now log in with your new account.",
+        "failTitle": "Registration failed",
+        "failDefault": "Registration failed"
+      }
+    }
+  }
+}

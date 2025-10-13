@@ -6,19 +6,21 @@ import { cn } from "@/lib/utils";
 import { CodeXml } from "lucide-react";
 import api from '@/lib/api';
 import { LinkItem } from '@/lib/types';
+import { useTranslations } from "next-intl";
 
 const fetcher = (url: string) => api.get(url).then(res => res.data.data);
 
 export function MainNav({ className, ...props }: React.HTMLAttributes<HTMLElement>) {
   const pathname = usePathname();
+  const t = useTranslations('home');
   const { data: dynamicLinks } = useSWR<LinkItem[]>('/links', fetcher, {
     revalidateOnFocus: false,
   });
 
   const allRoutes = [
-    { href: "/contests", label: "Contests" },
-    { href: "/submissions", label: "Submissions" },
-    { href: "/profile", label: "Profile" },
+    { href: "/contests", label: t("contests") },
+    { href: "/submissions", label: t("submissions") },
+    { href: "/profile", label: t("profile") },
     ...(dynamicLinks?.map(link => ({ href: link.url, label: link.name })) || []),
   ];
 
@@ -41,7 +43,8 @@ export function MainNav({ className, ...props }: React.HTMLAttributes<HTMLElemen
               rel="noopener noreferrer"
               className={cn(
                 "text-sm font-medium transition-colors hover:text-primary",
-                "text-muted-foreground"
+                "text-muted-foreground",
+                "whitespace-nowrap"
               )}
             >
               {route.label}
@@ -55,7 +58,8 @@ export function MainNav({ className, ...props }: React.HTMLAttributes<HTMLElemen
             href={route.href}
             className={cn(
               "text-sm font-medium transition-colors hover:text-primary",
-              isActive ? "text-primary" : "text-muted-foreground"
+              isActive ? "text-primary" : "text-muted-foreground",
+              "whitespace-nowrap"
             )}
           >
             {route.label}

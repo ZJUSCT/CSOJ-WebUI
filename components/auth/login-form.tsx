@@ -29,20 +29,23 @@ import { SiGitlab } from "react-icons/si";
 import useSWR from "swr";
 import { AuthStatus } from "@/lib/types";
 import { Skeleton } from "../ui/skeleton";
-
-const formSchema = z.object({
-  username: z.string().min(1, "Username is required"),
-  password: z.string().min(1, "Password is required"),
-});
+import { useTranslations } from "next-intl";
 
 const fetcher = (url: string) => api.get(url).then(res => res.data.data);
 
 export function LoginForm() {
+  const t = useTranslations('auth.login');
   const { login } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
   const gitlabLoginUrl = `/api/v1/auth/gitlab/login`;
   
+  // Define schema using t() for localized error messages
+  const formSchema = z.object({
+    username: z.string().min(1, t('form.usernameRequired')),
+    password: z.string().min(1, t('form.passwordRequired')),
+  });
+
   const { data: authStatus, isLoading } = useSWR<AuthStatus>('/auth/status', fetcher);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -58,15 +61,15 @@ export function LoginForm() {
       const response = await api.post("/auth/local/login", values);
       if (response.data.code === 0 && response.data.data.token) {
         login(response.data.data.token);
-        toast({ title: "Login successful!" });
+        toast({ title: t('toast.successTitle') });
         router.push("/contests");
       } else {
-        throw new Error(response.data.message || "Login failed");
+        throw new Error(response.data.message || t('toast.failDefault'));
       }
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Login failed",
+        title: t('toast.failTitle'),
         description: error.response?.data?.message || error.message,
       });
     }
@@ -76,9 +79,9 @@ export function LoginForm() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Login to CSOJ</CardTitle>
+          <CardTitle>{t('title')}</CardTitle>
           <CardDescription>
-            Checking available login methods...
+            {t('loadingDescription')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -98,11 +101,11 @@ export function LoginForm() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Login to CSOJ</CardTitle>
+        <CardTitle>{t('title')}</CardTitle>
         <CardDescription>
           {authStatus?.local_auth_enabled
-            ? "Enter your credentials or use an alternative login method."
-            : "Please use an available login method."}
+            ? t('descriptionLocal')
+            : t('descriptionExternal')}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -115,7 +118,7 @@ export function LoginForm() {
                   name="username"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Username</FormLabel>
+                      <FormLabel>{t('form.username')}</FormLabel>
                       <FormControl>
                         <Input placeholder="your_username" {...field} />
                       </FormControl>
@@ -128,7 +131,7 @@ export function LoginForm() {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Password</FormLabel>
+                      <FormLabel>{t('form.password')}</FormLabel>
                       <FormControl>
                         <Input type="password" placeholder="********" {...field} />
                       </FormControl>
@@ -141,7 +144,7 @@ export function LoginForm() {
                   className="w-full"
                   disabled={form.formState.isSubmitting}
                 >
-                  {form.formState.isSubmitting ? "Logging in..." : "Login"}
+                  {form.formState.isSubmitting ? t('form.loggingIn') : t('form.loginButton')}
                 </Button>
               </form>
             </Form>
@@ -152,25 +155,26 @@ export function LoginForm() {
               </div>
               <div className="relative flex justify-center text-xs uppercase">
                 <span className="bg-card px-2 text-muted-foreground">
-                  Or continue with
+                  {t('separatorText')}
                 </span>
               </div>
             </div>
           </>
         )}
-
+        
+        {/* GitLab Login Button - Assuming GitLab is always enabled for now */}
         <Button variant="outline" className="w-full" asChild>
           <a href={gitlabLoginUrl}>
             <SiGitlab className="mr-2 h-4 w-4" />
-            Login with GitLab
+            {t('gitlabButton')}
           </a>
         </Button>
 
         {authStatus?.local_auth_enabled && (
           <div className="mt-4 text-center text-sm">
-            Don&apos;t have an account?{" "}
+            {t('noAccount')}{" "}
             <Link href="/register" className="underline">
-              Register
+              {t('registerLink')}
             </Link>
           </div>
         )}

@@ -10,10 +10,12 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Copy, Timer } from "lucide-react";
 import { format, formatDistanceToNowStrict } from "date-fns";
+import { useTranslations } from "next-intl";
 
 interface DecodedToken extends JwtPayload {}
 
 export function TokenInfoCard() {
+    const t = useTranslations('Profile');
     const { token } = useAuth();
     const { toast } = useToast();
     const [decodedToken, setDecodedToken] = useState<DecodedToken | null>(null);
@@ -39,7 +41,7 @@ export function TokenInfoCard() {
                 if (expiryDate > new Date()) {
                     setExpiresIn(formatDistanceToNowStrict(expiryDate, { addSuffix: true }));
                 } else {
-                    setExpiresIn("Expired");
+                    setExpiresIn(t('token.expired'));
                 }
             };
 
@@ -54,8 +56,8 @@ export function TokenInfoCard() {
         if (token) {
             navigator.clipboard.writeText(token);
             toast({
-                title: "Token Copied!",
-                description: "The authentication token has been copied to your clipboard.",
+                title: t('token.copySuccessTitle'),
+                description: t('token.copySuccessDescription'),
             });
         }
     };
@@ -69,19 +71,19 @@ export function TokenInfoCard() {
     return (
         <Card>
             <CardHeader>
-                <CardTitle>Authentication Token</CardTitle>
+                <CardTitle>{t('token.title')}</CardTitle>
                 <CardDescription>
-                    This is your current session token. Keep it secure and do not share it.
+                    {t('token.description')}
                 </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
                 <div className="space-y-2">
-                    <Label htmlFor="jwt-token">Your Token</Label>
+                    <Label htmlFor="jwt-token">{t('token.label')}</Label>
                     <div className="flex items-center gap-2">
                         <Input id="jwt-token" readOnly value={token} className="truncate font-mono text-xs" />
                         <Button variant="outline" size="icon" onClick={handleCopy}>
                             <Copy className="h-4 w-4" />
-                            <span className="sr-only">Copy Token</span>
+                            <span className="sr-only">{t('token.copySr')}</span>
                         </Button>
                     </div>
                 </div>
@@ -89,15 +91,15 @@ export function TokenInfoCard() {
                 {expiryDate && (
                     <div className="space-y-2 text-sm">
                         <div className="flex items-center justify-between">
-                            <span className="text-muted-foreground">Expires At</span>
+                            <span className="text-muted-foreground">{t('token.expiresAt')}</span>
                             <span>{format(expiryDate, "yyyy-MM-dd HH:mm:ss")}</span>
                         </div>
                         <div className="flex items-center justify-between">
                             <span className="text-muted-foreground flex items-center gap-2">
                                 <Timer className="h-4 w-4" />
-                                Time Remaining
+                                {t('token.timeRemaining')}
                             </span>
-                            <span className={`font-medium ${expiresIn === "Expired" ? "text-destructive" : ""}`}>{expiresIn}</span>
+                            <span className={`font-medium ${expiresIn === t('token.expired') ? "text-destructive" : ""}`}>{expiresIn}</span>
                         </div>
                     </div>
                 )}

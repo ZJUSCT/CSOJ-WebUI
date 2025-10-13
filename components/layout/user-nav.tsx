@@ -14,8 +14,10 @@ import { useAuth } from "@/hooks/use-auth";
 import { getInitials } from "@/lib/utils";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 export function UserNav() {
+  const t = useTranslations('home.user');
   const { user, logout } = useAuth();
   const router = useRouter();
 
@@ -51,18 +53,18 @@ export function UserNav() {
         <DropdownMenuGroup>
             <Link href="/profile">
               <DropdownMenuItem>
-                Profile
+                {t('profile')}
               </DropdownMenuItem>
             </Link>
              <Link href="/submissions">
               <DropdownMenuItem>
-                My Submissions
+                {t('mySubmissions')}
               </DropdownMenuItem>
             </Link>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleLogout}>
-          Log out
+          {t('logout')}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
