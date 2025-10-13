@@ -16,7 +16,7 @@ interface SubmissionUploadFormProps {
     problemId: string;
     uploadLimits: {
         max_num: number;
-        max_size: number; // in KB
+        max_size: number;
         upload_form?: boolean;
         editor?: boolean;
         editor_files?: string[];
@@ -71,6 +71,7 @@ const getLanguageForFile = (filename: string = '') => {
         default: return 'plaintext';
     }
 };
+
 
 export default function SubmissionUploadForm({ problemId, uploadLimits }: SubmissionUploadFormProps) {
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -163,11 +164,11 @@ export default function SubmissionUploadForm({ problemId, uploadLimits }: Submis
         }
         
         const totalSize = filesToSubmit.reduce((acc, file) => acc + file.size, 0);
-        if (uploadLimits.max_size > 0 && totalSize > uploadLimits.max_size * 1024) {
+        if (uploadLimits.max_size > 0 && totalSize > uploadLimits.max_size * 1024 * 1024) {
             toast({
                 variant: 'destructive',
                 title: 'Files too large',
-                description: `Total upload size cannot exceed ${uploadLimits.max_size} KB.`,
+                description: `Total upload size cannot exceed ${uploadLimits.max_size} MB.`,
             });
             return;
         }
@@ -244,7 +245,7 @@ export default function SubmissionUploadForm({ problemId, uploadLimits }: Submis
                     </Button>
                 </div>
                 <p className="text-xs text-muted-foreground mt-4">
-                    Max {uploadLimits.max_num > 0 ? `${uploadLimits.max_num} files` : 'unlimited files'}, up to {uploadLimits.max_size > 0 ? `${uploadLimits.max_size} KB total` : 'unlimited size'}.
+                    Max {uploadLimits.max_num > 0 ? `${uploadLimits.max_num} files` : 'unlimited files'}, up to {uploadLimits.max_size > 0 ? `${uploadLimits.max_size} MB total` : 'unlimited size'}.
                 </p>
             </div>
             {files.length > 0 && (
