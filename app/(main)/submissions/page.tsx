@@ -169,11 +169,19 @@ function SubmissionDetails({ submissionId }: { submissionId: string }) {
                         {(submission.status === 'Running') && totalSteps > 0 && (
                             <div>
                                 <Progress value={progress} className="w-full" />
-                                <p className="text-xs text-muted-foreground mt-1">{t('details.info.stepProgress', {
+                                <p className="text-xs text-muted-foreground mt-1">{
+                                problem?.workflow[submission.current_step]?.name ? 
+                                t('details.info.stepProgress', {
                                     current: submission.current_step + 1,
                                     total: totalSteps,
-                                    name: problem?.workflow[submission.current_step]?.name ?? ''
-                                })}</p>
+                                    name: problem?.workflow[submission.current_step]?.name
+                                })
+                                :
+                                t('details.info.stepProgressNoName', {
+                                    current: submission.current_step + 1,
+                                    total: totalSteps,
+                                })
+                            }</p>
                             </div>
                         )}
                         <div className="flex items-center justify-between">
