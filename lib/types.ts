@@ -1,4 +1,5 @@
 export type Status = "Queued" | "Running" | "Success" | "Failed";
+export type Level = "platinum" | "gold" | "bronze" | "silver" | "hard" | "medium" | "easy" | "";
 
 export interface User {
   id: string;
@@ -38,6 +39,7 @@ export interface Problem {
     name: string;
     starttime: string;
     endtime: string;
+    level: Level;
     cluster: string;
     cpu: number;
     memory: number;

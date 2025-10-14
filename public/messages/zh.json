@@ -89,7 +89,7 @@
       "description": "在当前本次比赛中的成绩详情",
       "rank": "排名",
       "totalScore": "总分",
-      "scoreBreakdown": "分数详情：",
+      "scoreBreakdown": "分数详情",
       "problem": "题目",
       "score": "分数",
       "notRanked": "您尚未上榜，提交解答后即可显示排名"
@@ -346,5 +346,14 @@
       "Success": "成功",
       "Failed": "失败"
     }
+  },
+  "difficulty": {
+    "platinum": "铂",
+    "gold": "金",
+    "silver": "银",
+    "bronze": "铜",
+    "hard": "困难",
+    "medium": "中等",
+    "easy": "简单"
   }
 }

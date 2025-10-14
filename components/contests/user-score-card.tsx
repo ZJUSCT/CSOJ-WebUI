@@ -91,14 +91,14 @@ export default function UserScoreCard({ contestId }: { contestId: string }) {
           <div className="space-y-4">
             <div className="flex justify-between items-center pb-2 border-b">
               <div className="flex flex-col">
-                <span className="text-sm text-muted-foreground font-bold">{t("rank")}</span>
-                <span className="text-2xl font-bold flex items-center gap-1">
+                <span className="text-sm text-muted-foreground font-bold mb-1">{t("rank")}</span>
+                <span className="text-2xl font-bold flex items-center gap-3">
                   <Trophy className="text-yellow-500" /> #{userRank}
                 </span>
               </div>
 
               <div className="flex flex-col items-end">
-                <span className="text-sm text-muted-foreground font-bold">{t("totalScore")}</span>
+                <span className="text-sm text-muted-foreground font-bold mb-1">{t("totalScore")}</span>
                 <span className="text-2xl font-bold">{userEntry.total_score}</span>
               </div>
             </div>
