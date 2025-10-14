@@ -208,9 +208,10 @@
       "none": "暂无提交记录",
       "table": {
         "id": "编号",
-        "problemId": "题目编号",
+        "problemId": "题目",
         "status": "状态",
         "score": "得分",
+        "node": "测评节点",
         "submittedAt": "提交时间"
       }
     },
