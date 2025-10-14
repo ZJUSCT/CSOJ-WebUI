@@ -25,6 +25,13 @@ interface SubmissionUploadFormProps {
 
 const fetcher = (url: string) => api.get(url).then(res => res.data.data);
 
+function btoaUTF8(str: string) {
+    const bytes = new TextEncoder().encode(str);
+    let binary = "";
+    bytes.forEach(b => binary += String.fromCharCode(b));
+    return btoa(binary);
+}
+
 function AttemptsCounter({ problemId, onLimitReached }: { problemId: string, onLimitReached: (isReached: boolean) => void }) {
     const { data: attempts, isLoading } = useSWR<Attempts>(`/problems/${problemId}/attempts`, fetcher, {
         onSuccess: (data) => {
@@ -177,7 +184,7 @@ export default function SubmissionUploadForm({ problemId, uploadLimits }: Submis
         const formData = new FormData();
         filesToSubmit.forEach(file => {
             const filePath = (file as FileWithPath).path || (file as any).webkitRelativePath || file.name;
-            formData.append('files', file, filePath);
+            formData.append('files', file, btoaUTF8(filePath));
         });
 
         try {

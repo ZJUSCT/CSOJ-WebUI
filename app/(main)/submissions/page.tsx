@@ -142,7 +142,7 @@ function SubmissionDetails({ submissionId }: { submissionId: string }) {
                         <CardDescription>{t('details.log.description')}</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        {problem && submission ? <SubmissionLogViewer submission={submission} problem={problem} onStatusUpdate={mutate} /> : <Skeleton className="h-96 w-full" />}
+                        {problem && submission ? <SubmissionLogViewer submission={submission} problem={problem} onStatusUpdate={mutate} /> : <Skeleton className="h-[60vh] w-full" />}
                     </CardContent>
                 </Card>
             </div>

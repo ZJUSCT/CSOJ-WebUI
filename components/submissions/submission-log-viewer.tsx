@@ -48,9 +48,9 @@ const StaticLogViewer = ({ submissionId, containerId }: { submissionId: string, 
             </div>
             <div
                 ref={logContainerRef}
-                className="font-mono text-xs bg-muted rounded-md h-96 overflow-y-auto p-4"
+                className="font-mono text-xs bg-muted rounded-md h-[60vh] overflow-y-auto p-4"
             >
-                {isLoading && <Skeleton className="h-full w-full" />}
+                {isLoading && <Skeleton className="h-[60vh] w-full" />}
                 {error && <p className="text-red-400">Failed to load log.</p>}
                 {messages.length > 0 && messages.map((msg, index) => (
                     <span key={index} className="whitespace-pre-wrap break-all">
@@ -120,7 +120,7 @@ const RealtimeLogViewer = ({ wsUrl, onStatusUpdate }: { wsUrl: string | null, on
             </div>
             <div
                 ref={logContainerRef}
-                className="font-mono text-xs bg-muted rounded-md h-96 overflow-y-auto p-4"
+                className="font-mono text-xs bg-muted rounded-md h-[60vh] overflow-y-auto p-4"
             >
                 {messages.length === 0 && <p className="text-muted-foreground">Waiting for judge output...</p>}
                 {messages.map((msg, index) => (
@@ -164,7 +164,7 @@ export function SubmissionLogViewer({ submission, problem, onStatusUpdate }: Sub
 
     if (submission.containers.length === 0) {
         return (
-            <div className="font-mono text-xs bg-muted rounded-md h-96 overflow-y-auto p-4 text-muted-foreground flex items-center justify-center">
+            <div className="font-mono text-xs bg-muted rounded-md h-[60vh] overflow-y-auto p-4 text-muted-foreground flex items-center justify-center">
                 Submission is in queue. No logs to display yet.
             </div>
         );
@@ -199,7 +199,7 @@ export function SubmissionLogViewer({ submission, problem, onStatusUpdate }: Sub
                 return (
                     <TabsContent key={container.id} value={container.id} className="mt-4">
                         {!canShow ? (
-                            <div className="font-mono text-xs bg-muted rounded-md h-96 overflow-y-auto p-4 text-muted-foreground flex items-center justify-center">
+                            <div className="font-mono text-xs bg-muted rounded-md h-[60vh] overflow-y-auto p-4 text-muted-foreground flex items-center justify-center">
                                 Log for this step is hidden by the problem author.
                             </div>
                         ) : isRunning ? (
