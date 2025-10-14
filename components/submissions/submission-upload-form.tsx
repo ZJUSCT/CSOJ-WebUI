@@ -11,6 +11,7 @@ import { Attempts } from '@/lib/types';
 import { Skeleton } from '../ui/skeleton';
 import Editor from "@monaco-editor/react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { minimatch } from "minimatch";
 import { useTranslations } from 'next-intl';
 
 interface SubmissionUploadFormProps {
@@ -19,6 +20,7 @@ interface SubmissionUploadFormProps {
         max_num: number;
         max_size: number;
         upload_form?: boolean;
+        upload_files?: string[];
         editor?: boolean;
         editor_files?: string[];
     };
@@ -100,7 +102,20 @@ export default function SubmissionUploadForm({ problemId, uploadLimits }: Submis
     const fileInputRef = useRef<HTMLInputElement>(null);
     const folderInputRef = useRef<HTMLInputElement>(null);
 
+    const uploadFiles = uploadLimits.upload_files || [];
+
     const addFiles = useCallback((newFiles: File[]) => {
+
+        if (uploadFiles.length > 0) {
+            newFiles = newFiles.filter(file => 
+                uploadFiles.some(pattern => minimatch(((file as FileWithPath).path || (file as any).webkitRelativePath || file.name).replace(/^\/+/, "").replace(/^(\.\/)+/, ""), pattern))
+            );
+            if (newFiles.length === 0) {
+                toast({ variant: 'destructive', title: 'No valid files', description: `No selected files match the allowed patterns: ${uploadFiles.join(', ')}` });
+                return;
+            }
+        }
+
         const allFiles = [...files, ...newFiles];
         if (uploadLimits.max_num > 0 && allFiles.length > uploadLimits.max_num) {
             toast({ 
@@ -196,7 +211,7 @@ export default function SubmissionUploadForm({ problemId, uploadLimits }: Submis
         setIsSubmitting(true);
         const formData = new FormData();
         filesToSubmit.forEach(file => {
-            const filePath = (file as FileWithPath).path || (file as any).webkitRelativePath || file.name;
+            const filePath = ((file as FileWithPath).path || (file as any).webkitRelativePath || file.name).replace(/^\/+/, "").replace(/^(\.\/)+/, "");
             formData.append('files', file, btoaUTF8(filePath));
         });
 
@@ -275,7 +290,7 @@ export default function SubmissionUploadForm({ problemId, uploadLimits }: Submis
                     <h4 className="font-semibold">{t('uploader.selectedFilesHeader')}</h4>
                     <ul className="space-y-1 bg-muted p-3 rounded-md max-h-48 overflow-y-auto">
                         {files.map((file, index) => {
-                            const displayPath = (file as FileWithPath).path || (file as any).webkitRelativePath || file.name;
+                            const displayPath = ((file as FileWithPath).path || (file as any).webkitRelativePath || file.name).replace(/^\/+/, "").replace(/^(\.\/)+/, "");
                             return (
                                 <li key={`${displayPath}-${index}`} className="flex items-center justify-between text-sm">
                                     <span className="flex items-center gap-2 truncate">
