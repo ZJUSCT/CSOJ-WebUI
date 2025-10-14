@@ -16,11 +16,13 @@ import { Progress } from "@/components/ui/progress";
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
+import { useTranslations } from 'next-intl';
 
 const fetcher = (url: string) => api.get(url).then(res => res.data.data);
 
 // Component for the list of submissions
 function MySubmissionsList() {
+    const t = useTranslations('submissions');
     const { data: submissions, error, isLoading } = useSWR<Submission[]>('/submissions', fetcher, {
         refreshInterval: 5000
     });
@@ -28,8 +30,8 @@ function MySubmissionsList() {
     if (isLoading) return (
         <Card>
             <CardHeader>
-                <CardTitle>My Submissions</CardTitle>
-                <CardDescription>A list of all your submissions.</CardDescription>
+                <CardTitle>{t('list.title')}</CardTitle>
+                <CardDescription>{t('list.description')}</CardDescription>
             </CardHeader>
             <CardContent>
                 <div className="space-y-2">
@@ -38,23 +40,23 @@ function MySubmissionsList() {
             </CardContent>
         </Card>
     );
-    if (error) return <div>Failed to load submissions.</div>;
+    if (error) return <div>{t('list.loadFail')}</div>;
 
     return (
         <Card>
             <CardHeader>
-                <CardTitle>My Submissions</CardTitle>
-                <CardDescription>A list of all your submissions.</CardDescription>
+                <CardTitle>{t('list.title')}</CardTitle>
+                <CardDescription>{t('list.description')}</CardDescription>
             </CardHeader>
             <CardContent>
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead>ID</TableHead>
-                            <TableHead>Problem ID</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead>Score</TableHead>
-                            <TableHead>Submitted At</TableHead>
+                            <TableHead>{t('list.table.id')}</TableHead>
+                            <TableHead>{t('list.table.problemId')}</TableHead>
+                            <TableHead>{t('list.table.status')}</TableHead>
+                            <TableHead>{t('list.table.score')}</TableHead>
+                            <TableHead>{t('list.table.submittedAt')}</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -78,7 +80,7 @@ function MySubmissionsList() {
                             ))
                         ) : (
                             <TableRow>
-                                <TableCell colSpan={5} className="text-center">No submissions yet.</TableCell>
+                                <TableCell colSpan={5} className="text-center">{t('list.none')}</TableCell>
                             </TableRow>
                         )}
                     </TableBody>
@@ -89,21 +91,23 @@ function MySubmissionsList() {
 }
 
 function QueuePosition({ submissionId, cluster }: { submissionId: string, cluster: string }) {
+    const t = useTranslations('submissions');
     const { data } = useSWR<{ position: number }>(`/submissions/${submissionId}/queue_position`, fetcher, { refreshInterval: 3000 });
 
     if (data === undefined) return null;
 
     return (
         <div className="flex items-center justify-between text-sm text-blue-500">
-            <span className="text-muted-foreground flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" />Queue Position</span>
-            <span>#{data.position + 1} in {cluster} queue</span>
+            <span className="text-muted-foreground flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" />{t('details.queue.position')}</span>
+            <span>{t('details.queue.info', { position: data.position + 1, cluster })}</span>
         </div>
     );
 }
 
 
-// --- [修改] Component for submission details ---
+// Component for submission details
 function SubmissionDetails({ submissionId }: { submissionId: string }) {
+    const t = useTranslations('submissions');
     const { toast } = useToast();
     const { data: submission, error, isLoading, mutate } = useSWR<Submission>(`/submissions/${submissionId}`, fetcher, {
         refreshInterval: (data) => (data?.status === 'Queued' || data?.status === 'Running' ? 2000 : 0),
@@ -111,21 +115,21 @@ function SubmissionDetails({ submissionId }: { submissionId: string }) {
     const { data: problem } = useSWR<Problem>(submission ? `/problems/${submission.problem_id}` : null, fetcher);
 
     if (isLoading) return <SubmissionDetailsSkeleton />;
-    if (error) return <div>Failed to load submission.</div>;
-    if (!submission) return <div>Submission not found.</div>;
+    if (error) return <div>{t('details.loadFail')}</div>;
+    if (!submission) return <div>{t('details.notFound')}</div>;
 
     const totalSteps = problem?.workflow.length ?? 0;
     const progress = totalSteps > 0 ? ((submission.current_step + 1) / totalSteps) * 100 : 0;
     const canBeInterrupted = submission.status === 'Queued' || submission.status === 'Running';
 
     const handleInterrupt = async () => {
-        if (!confirm('Are you sure you want to interrupt this submission? This action cannot be undone.')) return;
+        if (!confirm(t('details.interrupt.confirm'))) return;
         try {
             await api.post(`/submissions/${submissionId}/interrupt`);
-            toast({ title: 'Success', description: 'Submission interruption request sent.' });
+            toast({ title: t('details.interrupt.successTitle'), description: t('details.interrupt.successDescription') });
             mutate();
         } catch (err: any) {
-            toast({ variant: 'destructive', title: 'Error', description: err.response?.data?.message || 'Failed to interrupt submission.' });
+            toast({ variant: 'destructive', title: t('details.interrupt.failTitle'), description: err.response?.data?.message || t('details.interrupt.failDefault') });
         }
     }
 
@@ -134,8 +138,8 @@ function SubmissionDetails({ submissionId }: { submissionId: string }) {
             <div className="lg:col-span-2">
                 <Card>
                     <CardHeader>
-                        <CardTitle>Live Log</CardTitle>
-                        <CardDescription>Real-time output from the judge. Select a step to view its log.</CardDescription>
+                        <CardTitle>{t('details.log.title')}</CardTitle>
+                        <CardDescription>{t('details.log.description')}</CardDescription>
                     </CardHeader>
                     <CardContent>
                         {problem && submission ? <SubmissionLogViewer submission={submission} problem={problem} onStatusUpdate={mutate} /> : <Skeleton className="h-96 w-full" />}
@@ -143,15 +147,14 @@ function SubmissionDetails({ submissionId }: { submissionId: string }) {
                 </Card>
             </div>
             
-            {/* --- [修改] 右侧合并为一个卡片 --- */}
             <div className="space-y-6">
                  <Card>
                     <CardHeader>
                         <div className="flex items-center justify-between">
-                            <CardTitle>Submission Info</CardTitle>
+                            <CardTitle>{t('details.info.title')}</CardTitle>
                             {canBeInterrupted && (
                                 <Button variant="destructive" size="sm" onClick={handleInterrupt}>
-                                    <XCircle /> Interrupt
+                                    <XCircle className="h-4 w-4 mr-1" /> {t('details.interrupt.button')}
                                 </Button>
                             )}
                         </div>
@@ -159,53 +162,57 @@ function SubmissionDetails({ submissionId }: { submissionId: string }) {
                     <CardContent className="space-y-4 text-sm">
                         {/* --- Submission Details Section --- */}
                         <div className="flex items-center justify-between">
-                            <span className="text-muted-foreground flex items-center gap-2"><Hash className="h-4 w-4"/>Status</span>
+                            <span className="text-muted-foreground flex items-center gap-2"><Hash className="h-4 w-4"/>{t('details.info.status')}</span>
                             <SubmissionStatusBadge status={submission.status} />
                         </div>
                         {submission.status === 'Queued' && <QueuePosition submissionId={submission.id} cluster={submission.cluster} />}
                         {(submission.status === 'Running') && totalSteps > 0 && (
                             <div>
                                 <Progress value={progress} className="w-full" />
-                                <p className="text-xs text-muted-foreground mt-1">Step {submission.current_step + 1} of {totalSteps}: {problem?.workflow[submission.current_step]?.name}</p>
+                                <p className="text-xs text-muted-foreground mt-1">{t('details.info.stepProgress', {
+                                    current: submission.current_step + 1,
+                                    total: totalSteps,
+                                    name: problem?.workflow[submission.current_step]?.name ?? ''
+                                })}</p>
                             </div>
                         )}
                         <div className="flex items-center justify-between">
-                            <span className="text-muted-foreground flex items-center gap-2"><Tag className="h-4 w-4"/>Score</span>
+                            <span className="text-muted-foreground flex items-center gap-2"><Tag className="h-4 w-4"/>{t('details.info.score')}</span>
                             <span className="font-mono text-lg">{submission.score}</span>
                         </div>
                         <div className="flex items-center justify-between">
-                            <span className="text-muted-foreground flex items-center gap-2"><Clock className="h-4 w-4"/>Submitted</span>
+                            <span className="text-muted-foreground flex items-center gap-2"><Clock className="h-4 w-4"/>{t('details.info.submitted')}</span>
                             <span>{formatDistanceToNow(new Date(submission.CreatedAt), { addSuffix: true })}</span>
                         </div>
                         <div className="flex items-center justify-between">
-                            <span className="text-muted-foreground flex items-center gap-2"><Code className="h-4 w-4"/>Problem</span>
+                            <span className="text-muted-foreground flex items-center gap-2"><Code className="h-4 w-4"/>{t('details.info.problem')}</span>
                              <Link href={`/problems?id=${submission.problem_id}`} className="text-primary hover:underline">
                                 {submission.problem_id}
                              </Link>
                         </div>
                          <div className="flex items-center justify-between">
-                            <span className="text-muted-foreground flex items-center gap-2"><User className="h-4 w-4"/>User</span>
+                            <span className="text-muted-foreground flex items-center gap-2"><User className="h-4 w-4"/>{t('details.info.user')}</span>
                             <span>{submission.user.nickname}</span>
                         </div>
                         <div className="flex items-center justify-between">
-                            <span className="text-muted-foreground flex items-center gap-2"><Layers className="h-4 w-4"/>Cluster</span>
+                            <span className="text-muted-foreground flex items-center gap-2"><Layers className="h-4 w-4"/>{t('details.info.cluster')}</span>
                             <span>{submission.cluster}</span>
                         </div>
                         <div className="flex items-center justify-between">
-                            <span className="text-muted-foreground flex items-center gap-2"><Server className="h-4 w-4"/>Node</span>
+                            <span className="text-muted-foreground flex items-center gap-2"><Server className="h-4 w-4"/>{t('details.info.node')}</span>
                             <span>{submission.node || 'N/A'}</span>
                         </div>
                         
-                        {/* --- [新增] Judge Info Section (conditionally rendered) --- */}
+                        {/* --- Judge Info Section (conditionally rendered) --- */}
                         {submission.info && Object.keys(submission.info).length > 0 && (
                              <>
                                 <Separator className="my-4" />
                                 <div className="space-y-2">
-                                    <h3 className="font-semibold tracking-tight">Judge Info</h3>
+                                    <h3 className="font-semibold tracking-tight">{t('details.judgeInfo.title')}</h3>
                                     <pre className="p-4 bg-muted rounded-md text-xs overflow-auto">
                                         {JSON.stringify(submission.info, null, 2)}
                                     </pre>
-                                    <p className="text-xs text-muted-foreground">This is the raw JSON output from the final step of the judging process.</p>
+                                    <p className="text-xs text-muted-foreground">{t('details.judgeInfo.description')}</p>
                                 </div>
                              </>
                         )}
@@ -218,6 +225,7 @@ function SubmissionDetails({ submissionId }: { submissionId: string }) {
 
 
 function SubmissionDetailsSkeleton() {
+    const t = useTranslations('submissions');
     return (
       <div className="grid gap-6 lg:grid-cols-3">
           <div className="lg:col-span-2 space-y-6">
@@ -236,7 +244,7 @@ function SubmissionDetailsSkeleton() {
           </div>
           <div className="space-y-6">
               <Card>
-                  <CardHeader><Skeleton className="h-6 w-3/4" /></CardHeader>
+                  <CardHeader><CardTitle>{t('details.info.title')}</CardTitle></CardHeader>
                   <CardContent className="space-y-4">
                       {[...Array(6)].map((_, i) => (
                            <div key={i} className="flex justify-between">
