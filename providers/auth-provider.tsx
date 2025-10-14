@@ -5,6 +5,15 @@ import { jwtDecode, JwtPayload } from 'jwt-decode';
 import { useSWRConfig } from 'swr';
 import { User } from '@/lib/types';
 import api from '@/lib/api';
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { format } from 'date-fns';
+import { useTranslations } from 'next-intl';
 
 interface AuthState {
   token: string | null;
@@ -21,12 +30,14 @@ export interface AuthContextType extends AuthState {
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const t = useTranslations('banAlert');
   const [authState, setAuthState] = useState<AuthState>({
     token: null,
     user: null,
     isAuthenticated: false,
     isLoading: true,
   });
+  const [banInfo, setBanInfo] = useState<{ reason: string; until: string } | null>(null);
   const { mutate } = useSWRConfig();
 
   const fetchUserProfile = useCallback(async (token: string) => {
@@ -42,7 +53,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
     } catch (error) {
       console.error('Failed to fetch user profile, logging out.', error);
-      logout();
+      const errorResponse = (error as any).response;
+      if (!errorResponse || (errorResponse.status !== 403 || !errorResponse.data?.data?.ban_reason)) {
+        logout();
+      }
     }
   }, []);
 
@@ -57,6 +71,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Clear all SWR cache on logout
     mutate(() => true, undefined, { revalidate: false });
   }, [mutate]);
+
+  useEffect(() => {
+    const handleBan = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      const { reason, until } = customEvent.detail;
+      logout();
+      setBanInfo({ reason, until });
+    };
+
+    window.addEventListener('userBanned', handleBan);
+
+    return () => {
+      window.removeEventListener('userBanned', handleBan);
+    };
+  }, [logout]);
+
 
   useEffect(() => {
     const token = localStorage.getItem('csoj_jwt');
@@ -85,6 +115,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   return (
     <AuthContext.Provider value={{ ...authState, login, logout }}>
       {children}
+      {banInfo && (
+        <AlertDialog open={!!banInfo}>
+          <AlertDialogContent className="bg-destructive text-destructive-foreground border-destructive-foreground/20">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="text-2xl font-bold">
+                {t('title')}
+              </AlertDialogTitle>
+              <AlertDialogDescription asChild>
+                <div className="text-destructive-foreground/90 text-lg pt-4 space-y-4">
+                  <div>
+                    <p className="font-semibold">{t('reasonLabel')}</p>
+                    <p className="font-normal">{banInfo.reason}</p>
+                  </div>
+                  <div>
+                    <p className="font-semibold">{t('untilLabel')}</p>
+                    <p className="font-normal">{format(new Date(banInfo.until), "yyyy-MM-dd HH:mm:ss")}</p>
+                  </div>
+                </div>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
     </AuthContext.Provider>
   );
 };

@@ -336,5 +336,10 @@
       "Success": "成功",
       "Failed": "失败"
     }
+  },
+  "banAlert": {
+    "title": "账户已被封禁",
+    "reasonLabel": "封禁原因:",
+    "untilLabel": "解封时间:"
   }
 }

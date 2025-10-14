@@ -336,5 +336,10 @@
       "Success": "Success",
       "Failed": "Failed"
     }
+  },
+  "banAlert": {
+    "title": "Account Banned",
+    "reasonLabel": "Ban Reason:",
+    "untilLabel": "Ban Ends At:"
   }
 }
