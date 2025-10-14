@@ -1,7 +1,7 @@
 {
   "home": {
     "power_by": "基于 <github1>ZJUSCT/CSOJ</github1> 与 <github2>ZJUSCT/CSOJ-WebUI</github2> 构建",
-    "contests": "竞赛列表",
+    "contests": "比赛列表",
     "submissions": "提交记录",
     "profile": "个人中心",
     "theme": {
@@ -17,7 +17,7 @@
     }
   },
   "contests": {
-    "invalidDuration": "竞赛时长设置无效",
+    "invalidDuration": "比赛时长设置无效",
     "starts": "开始时间",
     "ends": "结束时间",
     "to": "至",
@@ -26,7 +26,7 @@
     "checking": "校验中...",
     "register": "立即报名",
     "loading": "加载中...",
-    "registerForContest": "竞赛报名",
+    "registerForContest": "比赛报名",
     "status": {
       "upcoming": "即将开始",
       "ongoing": "进行中",
@@ -36,25 +36,25 @@
     },
     "registration": {
       "successTitle": "报名成功",
-      "successDescription": "您已成功报名参加本次竞赛",
+      "successDescription": "您已成功报名参加本次比赛",
       "failTitle": "报名失败",
       "unexpectedError": "发生未知错误，请稍后重试"
     },
     "list": {
-      "loadFail": "加载竞赛列表失败",
-      "noContests": "暂无可用竞赛"
+      "loadFail": "加载比赛列表失败",
+      "noContests": "暂无可用比赛"
     },
     "detail": {
-      "loadFail": "加载竞赛详情失败",
-      "notFound": "未找到指定竞赛"
+      "loadFail": "加载比赛详情失败",
+      "notFound": "未找到指定比赛"
     },
     "description": {
-      "title": "竞赛说明"
+      "title": "比赛说明"
     },
     "problems": {
       "title": "题目列表",
       "instruction": "请选择题目查看详情并提交解答",
-      "none": "当前竞赛未激活或暂无题目"
+      "none": "当前比赛未激活或暂无题目"
     },
     "problemCard": {
       "id": "题目编号",
@@ -62,7 +62,7 @@
     },
     "trend": {
       "title": "分数趋势",
-      "description": "顶尖选手得分随时间变化趋势图",
+      "description": "选手得分随时间变化趋势图",
       "loadFail": "加载趋势数据失败",
       "none": "暂无趋势数据"
     },
@@ -73,14 +73,14 @@
       "totalScore": "总分",
       "loadFail": "加载排行榜数据失败",
       "none": "暂无得分记录",
-      "contestDetailsFail": "无法加载竞赛详情，无法显示排行榜头部信息"
+      "contestDetailsFail": "无法加载比赛详情，无法显示排行榜头部信息"
     },
     "tabs": {
       "problems": "题目列表",
       "leaderboard": "排行榜"
     },
     "announcements": {
-      "title": "竞赛公告",
+      "title": "比赛公告",
       "loadFail": "加载公告失败",
       "none": "暂无公告"
     }
@@ -230,7 +230,8 @@
         "user": "用户",
         "cluster": "测评集群",
         "node": "节点",
-        "stepProgress": "第 {{current}} 步 / 共 {{total}} 步：{{name}}"
+        "stepProgress": "第 {{current}} 步 / 共 {{total}} 步：{{name}}",
+        "stepProgressNoName": "第 {{current}} 步 / 共 {{total}} 步"
       },
       "judgeInfo": {
         "title": "测评信息",
@@ -248,6 +249,81 @@
         "failTitle": "操作失败",
         "failDefault": "中断提交失败，请重试"
       }
+    },
+    "upload": {
+      "attemptsCounter": {
+        "label": "提交次数: {used} / {limit}",
+        "remaining": "剩余 {remaining} 次",
+        "limitReached": "提交次数达到限制"
+      },
+      "modeTabs": {
+        "editor": "在线编辑",
+        "upload": "直接上传"
+      },
+      "editor": {
+        "emptyContentToast": {
+          "title": "内容为空",
+          "description": "提交前请先编写代码。"
+        }
+      },
+      "uploader": {
+        "dragAndDrop": "拖拽文件或文件夹到此处",
+        "dragActive": "释放文件或文件夹...",
+        "selectFilesButton": "选择文件",
+        "selectFolderButton": "选择文件夹",
+        "limits": "最多 {maxNum, select, 0 {不限文件数量} other {{maxNum} 个文件}}，总大小不超过 {maxSize, select, 0 {不限} other {{maxSize} MB}}。",
+        "tooManyFilesToast": {
+          "title": "文件过多",
+          "description": "您最多可以上传 {maxNum} 个文件"
+        },
+        "selectedFilesHeader": "已选文件:",
+        "fileSizeUnit": "({size} KB)"
+      },
+      "submission": {
+        "submitButton": "提交",
+        "submittingButton": "提交中...",
+        "noFilesToast": {
+          "title": "未选择文件"
+        },
+        "fileTooLargeToast": {
+          "title": "文件过大",
+          "description": "总上传大小不能超过 {maxSize} MB"
+        },
+        "successToast": {
+          "title": "提交成功！",
+          "description": "提交 ID: {submissionId}"
+        },
+        "failureToast": {
+          "title": "提交失败",
+          "description": "{message}"
+        },
+        "disabledMessage": "此题暂未开放提交"
+      }
+    },
+    "logViewer": {
+      "staticLog": {
+        "statusFinished": "已完成",
+        "errorLoading": "日志加载失败。"
+      },
+      "realtimeLog": {
+        "statusConnecting": "连接中...",
+        "statusLive": "实时输出",
+        "statusClosing": "关闭中...",
+        "statusDisconnected": "已断开连接",
+        "statusUninstantiated": "未初始化",
+        "waitingOutput": "等待评测输出..."
+      },
+      "mainViewer": {
+        "tabLabel": "第 {step} 步: {name}",
+        "queueMessage": "提交正在队列中，暂无日志可显示",
+        "hiddenLogMessage": "该步骤的日志被隐藏"
+      }
+    },
+    "status": {
+      "Queued": "排队中",
+      "Running": "评测中",
+      "Success": "测评成功",
+      "Failed": "测评失败"
     }
   }
 }
