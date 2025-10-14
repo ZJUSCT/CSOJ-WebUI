@@ -10,6 +10,8 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
+import { zhCN, enUS, Locale } from "date-fns/locale";
+import { useLocale } from "next-intl";
 import { Calendar, Clock, BookOpen, Trophy, CheckCircle, Edit3, Loader2 } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
@@ -132,6 +134,11 @@ function ContestTimeline({ contest }: { contest: Contest }) {
 }
 
 function ContestCard({ contest }: { contest: Contest }) {
+    const locale = useLocale();
+    const locales: Record<string, Locale> = {
+        zh: zhCN,
+        en: enUS,
+    };
     const t = useTranslations('contests');
     const { data: history, isLoading: isHistoryLoading } = useSWR<ScoreHistoryPoint[]>(`/contests/${contest.id}/history`, fetcher);
     const { mutate } = useSWRConfig();
@@ -172,38 +179,46 @@ function ContestCard({ contest }: { contest: Contest }) {
     const isLoadingRegistration = isHistoryLoading || isRegistering;
 
     return (
-        <Card>
-            <CardHeader>
-                <CardTitle className="text-xl">{contest.name}</CardTitle>
-                <CardDescription>
-                    <span className={`font-semibold ${statusText === t('status.ongoing') ? 'text-green-500' : statusText === t('status.finished') ? 'text-red-500' : 'text-blue-500'}`}>{statusText}</span>
-                </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4 text-sm text-muted-foreground">
-                <div className="space-y-2">
-                    <div className="flex items-center gap-2"><Calendar className="h-4 w-4" /><span>{format(startTime, 'MMM d, yyyy')} - {format(endTime, 'MMM d, yyyy')}</span></div>
-                    <div className="flex items-center gap-2"><Clock className="h-4 w-4" /><span>{format(startTime, 'p')} {t('to')} {format(endTime, 'p')}</span></div>
-                </div>
-                <ContestTimeline contest={contest} />
-            </CardContent>
-            <CardFooter className="flex justify-between items-center">
-                <Link href={`/contests?id=${contest.id}`} passHref>
-                    <Button>{t('viewDetails')}</Button>
-                </Link>
-                {canRegister && (
-                    isRegistered ? (
-                        <Button disabled variant="secondary">
-                            <CheckCircle className="mr-2 h-4 w-4" /> {t('registered')}
-                        </Button>
-                    ) : (
-                        <Button onClick={handleRegister} disabled={isLoadingRegistration} variant="outline">
-                            {isLoadingRegistration ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Edit3 className="mr-2 h-4 w-4" />}
-                            {isLoadingRegistration ? t('checking') : t('register')}
-                        </Button>
-                    )
-                )}
-            </CardFooter>
-        </Card>
+        <Link href={`/contests?id=${contest.id}`} passHref>
+            <Card className="hover:shadow-lg transition-shadow duration-300">
+                <CardHeader>
+                    <CardTitle className="text-xl">
+                        <Link href={`/contests?id=${contest.id}`} passHref>
+                            {contest.name}
+                        </Link>
+                    </CardTitle>
+                    <CardDescription>
+                        <Link href={`/contests?id=${contest.id}`} passHref>
+                            <span className={`text-base font-bold ${statusText === t('status.ongoing') ? 'text-green-600' : statusText === t('status.finished') ? 'text-red-600' : 'text-blue-600'}`}>{statusText}</span>
+                        </Link>
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4 text-sm text-muted-foreground">
+                    <div className="space-y-2">
+                        <div className="flex items-center gap-2"><Calendar className="h-4 w-4" /><span>{format(startTime, 'PPP', { locale: locales[locale] || enUS })} - {format(endTime, 'PPP', { locale: locales[locale] || enUS })}</span></div>
+                        <div className="flex items-center gap-2"><Clock className="h-4 w-4" /><span>{format(startTime, 'HH:mm')} {t('to')} {format(endTime, 'HH:mm')}</span></div>
+                    </div>
+                    <ContestTimeline contest={contest} />
+                </CardContent>
+                <CardFooter className="flex">
+                    {canRegister && (
+                        isRegistered ? (
+                            <Button disabled className="ml-auto">
+                                <CheckCircle className="mr-2 h-4 w-4" /> {t('registered')}
+                            </Button>
+                        ) : (
+                            <Button onClick={(e) => {
+                                e.preventDefault();
+                                handleRegister(e);
+                            }} disabled={isLoadingRegistration} className="ml-auto">
+                                {isLoadingRegistration ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Edit3 className="mr-2 h-4 w-4" />}
+                                {isLoadingRegistration ? t('checking') : t('register')}
+                            </Button>
+                        )
+                    )}
+                </CardFooter>
+            </Card>
+        </Link>
     );
 }
 
@@ -234,21 +249,39 @@ function ContestList() {
     );
 }
 
-function ProblemCard({ problemId }: { problemId: string }) {
+export function ProblemCard({ problemId, index }: { problemId: string; index: number }) {
     const t = useTranslations('contests');
     const { data: problem, isLoading } = useSWR<Problem>(`/problems/${problemId}`, fetcher);
+
     if (isLoading) return <Skeleton className="h-24 w-full" />;
+
     return (
-        <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-base font-medium">{problem?.name || problemId}</CardTitle>
-                <BookOpen className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-                <div className="text-xs text-muted-foreground mb-4">{t('problemCard.id')}: {problemId}</div>
-                <Link href={`/problems?id=${problemId}`}><Button size="sm">{t('problemCard.view')}</Button></Link>
-            </CardContent>
-        </Card>
+        <Link href={`/problems?id=${problemId}`} className="relative block overflow-hidden hover:shadow-lg transition-shadow duration-300">
+            <Card className="h-full">
+                <div className="relative z-10">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="font-bold">{problem?.name || problemId}</CardTitle>
+                        <BookOpen className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-xs text-muted-foreground mb-4">{t('problemCard.id')}: {problemId}</div>
+                    </CardContent>
+                </div>
+
+                <div
+                    aria-hidden="true"
+                    className="
+                        absolute bottom-0 right-0 z-0
+                        transform translate-x-1/5 translate-y-1/4
+                        text-9xl font-extrabold
+                        text-neutral-500/10 dark:text-white/5
+                        pointer-events-none select-none
+                    "
+                >
+                    {index}
+                </div>
+            </Card>
+        </Link>
     );
 }
 
@@ -276,7 +309,7 @@ function ContestProblems({ contestId }: { contestId: string }) {
                     <CardDescription>{contest.problem_ids.length > 0 ? t('problems.instruction') : t('problems.none')}</CardDescription>
                 </CardHeader>
                 <CardContent className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    {contest.problem_ids.map(problemId => <ProblemCard key={problemId} problemId={problemId} />)}
+                    {contest.problem_ids.map((problemId, i) => <ProblemCard key={problemId} problemId={problemId} index={i + 1} />)}
                 </CardContent>
             </Card>
         </div>
