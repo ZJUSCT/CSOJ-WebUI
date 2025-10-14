@@ -275,7 +275,7 @@ export default function SubmissionUploadForm({ problemId, uploadLimits }: Submis
                     <h4 className="font-semibold">Selected files:</h4>
                     <ul className="space-y-1 bg-muted p-3 rounded-md max-h-48 overflow-y-auto">
                         {files.map((file, index) => {
-                            const displayPath = (file as FileWithPath).path || (file as any).webkitRelativePath || file.name;
+                            const displayPath = ((file as FileWithPath).path || (file as any).webkitRelativePath || file.name).replace(/^\/+/, "").replace(/^(\.\/)+/, "");
                             return (
                                 <li key={`${displayPath}-${index}`} className="flex items-center justify-between text-sm">
                                     <span className="flex items-center gap-2 truncate">
