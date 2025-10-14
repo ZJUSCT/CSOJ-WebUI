@@ -176,11 +176,7 @@
       "toast": {
         "successTitle": "登录成功！",
         "failTitle": "登录失败",
-        "failDefault": "登录失败，请检查凭证",
-        "banned": {
-          "title": "账户被封禁",
-          "description": "原因：{reason}。封禁解除时间：{until}。"
-        }
+        "failDefault": "登录失败，请检查凭证"
       }
     },
     "register": {

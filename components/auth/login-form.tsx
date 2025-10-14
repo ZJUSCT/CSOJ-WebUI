@@ -30,7 +30,6 @@ import useSWR from "swr";
 import { AuthStatus } from "@/lib/types";
 import { Skeleton } from "../ui/skeleton";
 import { useTranslations } from "next-intl";
-import { format } from "date-fns";
 
 const fetcher = (url: string) => api.get(url).then(res => res.data.data);
 
@@ -68,24 +67,11 @@ export function LoginForm() {
         throw new Error(response.data.message || t('toast.failDefault'));
       }
     } catch (error: any) {
-      const errorData = error.response?.data;
-      if (error.response?.status === 403 && errorData?.data?.banned_until) {
-          toast({
-              variant: "destructive",
-              title: t('toast.banned.title'),
-              description: t('toast.banned.description', {
-                  reason: errorData.data.ban_reason || 'No reason provided.',
-                  until: format(new Date(errorData.data.banned_until), 'Pp')
-              }),
-              duration: 10000,
-          });
-      } else {
-          toast({
-              variant: "destructive",
-              title: t('toast.failTitle'),
-              description: errorData?.message || error.message,
-          });
-      }
+      toast({
+        variant: "destructive",
+        title: t('toast.failTitle'),
+        description: error.response?.data?.message || error.message,
+      });
     }
   };
   

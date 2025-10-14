@@ -176,11 +176,7 @@
       "toast": {
         "successTitle": "Login successful!",
         "failTitle": "Login failed",
-        "failDefault": "Login failed",
-        "banned": {
-          "title": "Login Denied: Account Banned",
-          "description": "Reason: {reason}. Ban lifts on {until}."
-        }
+        "failDefault": "Login failed"
       }
     },
     "register": {
