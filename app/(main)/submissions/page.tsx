@@ -1,4 +1,3 @@
-"use client";
 import useSWR from 'swr';
 import api from '@/lib/api';
 import { Problem, Submission } from '@/lib/types';
@@ -21,6 +20,7 @@ import { Separator } from '@/components/ui/separator';
 import { useTranslations } from 'next-intl';
 import { cn } from '@/lib/utils';
 import { CopyButton } from "@/components/ui/shadcn-io/copy-button";
+import MarkdownViewer from '@/components/shared/markdown-viewer';
 
 const fetcher = (url: string) => api.get(url).then(res => res.data.data);
 
@@ -212,6 +212,12 @@ function SubmissionDetails({ submissionId }: { submissionId: string }) {
     if (error) return <div>{t('details.loadFail')}</div>;
     if (!submission) return <div>{t('details.notFound')}</div>;
 
+    const markdownInfo = submission.info?.markdown;
+    const remainingInfo = { ...submission.info };
+    if (markdownInfo) {
+      delete remainingInfo.markdown;
+    }
+
     const totalSteps = problem?.workflow.length ?? 0;
     const progress = totalSteps > 0 ? ((submission.current_step + 1) / totalSteps) * 100 : 0;
     const canBeInterrupted = submission.status === 'Queued' || submission.status === 'Running';
@@ -305,14 +311,22 @@ function SubmissionDetails({ submissionId }: { submissionId: string }) {
                             <span>{submission.node || 'N/A'}</span>
                         </div>
                         
-                        {/* --- Judge Info Section (conditionally rendered) --- */}
-                        {submission.info && Object.keys(submission.info).length > 0 && (
+                        {markdownInfo && (
+                            <>
+                                <Separator className="my-4" />
+                                <div className="space-y-2">
+                                    <MarkdownViewer content={markdownInfo as string} />
+                                </div>
+                            </>
+                        )}
+
+                        {remainingInfo && Object.keys(remainingInfo).length > 0 && (
                              <>
                                 <Separator className="my-4" />
                                 <div className="space-y-2">
                                     <h3 className="font-semibold tracking-tight">{t('details.judgeInfo.title')}</h3>
                                     <pre className="p-4 bg-muted rounded-md text-xs overflow-auto">
-                                        {JSON.stringify(submission.info, null, 2)}
+                                        {JSON.stringify(remainingInfo, null, 2)}
                                     </pre>
                                     <p className="text-xs text-muted-foreground">{t('details.judgeInfo.description')}</p>
                                 </div>
