@@ -83,7 +83,17 @@
       "title": "比赛公告",
       "loadFail": "加载公告失败",
       "none": "暂无公告"
-    }
+    },
+    "userScoreCard": {
+      "title": "成绩",
+      "description": "在当前本次比赛中的成绩详情",
+      "rank": "排名",
+      "totalScore": "总分",
+      "scoreBreakdown": "分数详情：",
+      "problem": "题目",
+      "score": "分数",
+      "notRanked": "您尚未上榜，提交解答后即可显示排名"
+     }
   },
   "ProblemDetails": {
     "noProblem": {

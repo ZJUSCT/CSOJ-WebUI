@@ -83,7 +83,17 @@
       "title": "Announcements",
       "loadFail": "Failed to load announcements.",
       "none": "No announcements yet."
-    }
+    },
+    "userScoreCard": {
+      "title": "Your Score",
+      "description": "Your current performance in this contest.",
+      "rank": "Your Rank",
+      "totalScore": "Total Score",
+      "scoreBreakdown": "Score Breakdown:",
+      "problem": "Problem",
+      "score": "Score",
+      "notRanked": "You are not ranked yet. Make a submission to appear on the leaderboard."
+     }
   },
   "ProblemDetails": {
     "noProblem": {
