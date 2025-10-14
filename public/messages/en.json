@@ -57,7 +57,7 @@
       "none": "This contest is not active or has no problems."
     },
     "problemCard": {
-      "id": "Problem ID",
+      "id": "Problem",
       "view": "View Problem"
     },
     "trend": {
@@ -93,7 +93,7 @@
     "details": {
       "loadFail": "Failed to load problem. You may not have access to it yet.",
       "notFound": "Problem not found.",
-      "id": "Problem ID"
+      "id": "Problem"
     },
     "submitForm": {
       "title": "Submit Solution"
@@ -207,10 +207,11 @@
       "loadFail": "Failed to load submissions.",
       "none": "No submissions yet.",
       "table": {
-        "id": "ID",
-        "problemId": "Problem ID",
+        "id": "Submission ID",
+        "problemId": "Problem",
         "status": "Status",
         "score": "Score",
+        "node": "Node",
         "submittedAt": "Submitted At"
       }
     },

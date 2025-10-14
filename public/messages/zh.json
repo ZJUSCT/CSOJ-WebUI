@@ -323,8 +323,8 @@
     "status": {
       "Queued": "排队中",
       "Running": "评测中",
-      "Success": "测评成功",
-      "Failed": "测评失败"
+      "Success": "成功",
+      "Failed": "失败"
     }
   }
 }
