@@ -12,15 +12,12 @@ import {
 import { Languages } from 'lucide-react';
 
 const LOCALE_MAP: Record<string, string> = {
+    'zh': '简体中文',
     'en': 'English',
-    'zh': '中文',
 };
 
 export function LanguageToggle() {
-    // 使用导出的 Hook
     const { locale, switchLocale } = useClientLocale();
-
-    const currentLabel = locale ? LOCALE_MAP[locale] : 'Lang';
 
     return (
         <DropdownMenu>
