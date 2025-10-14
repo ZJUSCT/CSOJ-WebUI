@@ -5,6 +5,8 @@ import { jwtDecode, JwtPayload } from 'jwt-decode';
 import { useSWRConfig } from 'swr';
 import { User } from '@/lib/types';
 import api from '@/lib/api';
+import { useToast } from '@/hooks/use-toast';
+import { format } from 'date-fns';
 
 interface AuthState {
   token: string | null;
@@ -28,6 +30,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     isLoading: true,
   });
   const { mutate } = useSWRConfig();
+  const { toast } = useToast();
+
+  const logout = useCallback(() => {
+    localStorage.removeItem('csoj_jwt');
+    setAuthState({
+      token: null,
+      user: null,
+      isAuthenticated: false,
+      isLoading: false,
+    });
+    // Clear all SWR cache on logout
+    mutate(() => true, undefined, { revalidate: false });
+  }, [mutate]);
 
   const fetchUserProfile = useCallback(async (token: string) => {
     try {
@@ -44,19 +59,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.error('Failed to fetch user profile, logging out.', error);
       logout();
     }
-  }, []);
-
-  const logout = useCallback(() => {
-    localStorage.removeItem('csoj_jwt');
-    setAuthState({
-      token: null,
-      user: null,
-      isAuthenticated: false,
-      isLoading: false,
-    });
-    // Clear all SWR cache on logout
-    mutate(() => true, undefined, { revalidate: false });
-  }, [mutate]);
+  }, [logout]);
 
   useEffect(() => {
     const token = localStorage.getItem('csoj_jwt');
@@ -76,6 +79,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setAuthState(prev => ({ ...prev, isLoading: false }));
     }
   }, [fetchUserProfile, logout]);
+
+  useEffect(() => {
+    const handleBanned = (event: Event) => {
+      const detail = (event as CustomEvent).detail;
+      logout();
+      toast({
+          variant: "destructive",
+          title: "Session Expired: Banned",
+          description: `You have been banned. Reason: ${detail.ban_reason || 'No reason provided'}. Ban lifts on ${format(new Date(detail.banned_until), 'Pp')}`,
+          duration: 15000,
+      });
+      // Force reload to redirect to login page via withAuth HOC
+      window.location.reload();
+    };
+
+    window.addEventListener('auth-error-403-banned', handleBanned);
+    return () => {
+        window.removeEventListener('auth-error-403-banned', handleBanned);
+    };
+  }, [logout, toast]);
 
   const login = (token: string) => {
     localStorage.setItem('csoj_jwt', token);
