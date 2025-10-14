@@ -89,7 +89,7 @@
       "description": "Your current performance in this contest.",
       "rank": "Your Rank",
       "totalScore": "Total Score",
-      "scoreBreakdown": "Score Breakdown:",
+      "scoreBreakdown": "Score Breakdown",
       "problem": "Problem",
       "score": "Score",
       "notRanked": "You are not ranked yet. Make a submission to appear on the leaderboard."
@@ -264,6 +264,7 @@
     "upload": {
       "attemptsCounter": {
         "label": "Attempts: {used} / {limit}",
+        "label_unlimited": "No submission limit",
         "remaining": "{remaining} remaining",
         "limitReached": "Limit reached"
       },
@@ -326,6 +327,7 @@
       },
       "mainViewer": {
         "tabLabel": "Step {step}: {name}",
+        "tabHidden": " (Hidden)",
         "queueMessage": "Submission is in queue. No logs to display yet.",
         "hiddenLogMessage": "Log for this step is hidden by the problem author."
       }
@@ -336,6 +338,15 @@
       "Success": "Success",
       "Failed": "Failed"
     }
+  },
+  "difficulty": {
+    "platinum": "Platinum",
+    "gold": "Gold",
+    "silver": "Silver",
+    "bronze": "Bronze",
+    "hard": "Hard",
+    "medium": "Medium",
+    "easy": "Easy"
   },
   "banAlert": {
     "title": "Account Banned",

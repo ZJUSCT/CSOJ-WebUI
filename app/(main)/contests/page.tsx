@@ -23,7 +23,9 @@ import { UserProfileCard } from '@/components/shared/user-profile-card';
 import { getInitials } from '@/lib/utils';
 import EchartsTrendChart from '@/components/charts/echarts-trend-chart';
 import { AnnouncementsCard } from '@/components/contests/announcements-card';
-import { UserScoreCard } from '@/components/contests/user-score-card';
+import { DifficultyBadge } from '@/components/contests/difficulty-badge';
+import UserScoreCard from '@/components/contests/user-score-card';
+import { Search, List } from 'lucide-react';
 
 const fetcher = (url: string) => api.get(url).then(res => res.data.data);
 
@@ -254,10 +256,10 @@ function ProblemCard({ problemId, index }: { problemId: string; index: number })
     const t = useTranslations('contests');
     const { data: problem, isLoading } = useSWR<Problem>(`/problems/${problemId}`, fetcher);
 
-    if (isLoading) return <Skeleton className="h-24 w-full" />;
+    if (isLoading) return <Skeleton className="h-28 w-full" />;
 
     return (
-        <Link href={`/problems?id=${problemId}`} className="relative block overflow-hidden hover:shadow-lg transition-shadow duration-300">
+        <Link href={`/problems?id=${problemId}`} className="relative block overflow-hidden rounded-lg hover:shadow-lg transition-shadow duration-300">
             <Card className="h-full">
                 <div className="relative z-10">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -266,6 +268,7 @@ function ProblemCard({ problemId, index }: { problemId: string; index: number })
                     </CardHeader>
                     <CardContent>
                         <div className="text-xs text-muted-foreground mb-4">{t('problemCard.id')}: {problemId}</div>
+                        <DifficultyBadge level={problem?.level || ""} />
                     </CardContent>
                 </div>
 
@@ -275,7 +278,7 @@ function ProblemCard({ problemId, index }: { problemId: string; index: number })
                         absolute bottom-0 right-0 z-0
                         transform translate-x-1/5 translate-y-1/4
                         text-9xl font-extrabold
-                        text-neutral-500/10 dark:text-white/5
+                        text-gray-100 dark:text-zinc-700
                         pointer-events-none select-none
                     "
                 >
@@ -289,33 +292,51 @@ function ProblemCard({ problemId, index }: { problemId: string; index: number })
 function ContestProblems({ contestId }: { contestId: string }) {
     const t = useTranslations('contests');
     const { data: contest, error, isLoading } = useSWR<Contest>(`/contests/${contestId}`, fetcher);
+
     if (isLoading) return <Skeleton className="h-64 w-full" />;
     if (error) return <div>{t('detail.loadFail')}</div>;
     if (!contest) return <div>{t('detail.notFound')}</div>;
+
     return (
         <div className="space-y-6">
             <Card>
-                <CardHeader><CardTitle>{t('description.title')}</CardTitle></CardHeader>
+                <CardHeader>
+                    <div className="flex items-center space-x-2">
+                        <Search className="w-5 h-5" />
+                        <CardTitle className="font-bold">{t('description.title')}</CardTitle>
+                    </div>
+                </CardHeader>
                 <CardContent>
-                    <MarkdownViewer 
-                        content={contest.description} 
+                    <MarkdownViewer
+                        content={contest.description}
                         assetContext="contest"
                         assetContextId={contest.id}
                     />
                 </CardContent>
             </Card>
+
             <Card>
                 <CardHeader>
-                    <CardTitle>{t('problems.title')}</CardTitle>
-                    <CardDescription>{contest.problem_ids.length > 0 ? t('problems.instruction') : t('problems.none')}</CardDescription>
+                    <div className="flex items-center space-x-2">
+                        <List className="w-5 h-5" />
+                        <CardTitle className="font-bold">{t('problems.title')}</CardTitle>
+                    </div>
+                    <CardDescription>
+                        {contest.problem_ids.length > 0
+                            ? t('problems.instruction')
+                            : t('problems.none')}
+                    </CardDescription>
                 </CardHeader>
                 <CardContent className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    {contest.problem_ids.map((problemId, i) => <ProblemCard key={problemId} problemId={problemId} index={i + 1} />)}
+                    {contest.problem_ids.map((problemId, i) => (
+                        <ProblemCard key={problemId} problemId={problemId} index={i + 1} />
+                    ))}
                 </CardContent>
             </Card>
         </div>
     );
 }
+
 
 function ContestTrend({ contest }: { contest: Contest }) {
     const t = useTranslations('contests');
@@ -536,8 +557,8 @@ function ContestDetailView({ contestId, view }: { contestId: string, view: strin
                 </div>
 
                 <div className="space-y-6 lg:sticky lg:top-20">
-                     <AnnouncementsCard contestId={contestId} /> 
                      <UserScoreCard contestId={contestId} />
+                     <AnnouncementsCard contestId={contestId} /> 
                 </div>
             </div>
         </div>

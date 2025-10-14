@@ -11,12 +11,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { getScoreColor } from '@/lib/utils';
+import { CopyButton } from '@/components/ui/shadcn-io/copy-button';
 import { Suspense } from 'react';
 
 const fetcher = (url: string) => api.get(url).then(res => res.data.data);
 
 function UserSubmissionsForProblem({ problemId }: { problemId: string }) {
+    const router = useRouter();
     const t = useTranslations('ProblemDetails');
     const { data: allSubmissions, isLoading } = useSWR<Submission[]>('/submissions', fetcher);
 
@@ -32,23 +35,42 @@ function UserSubmissionsForProblem({ problemId }: { problemId: string }) {
         <Table>
             <TableHeader>
                 <TableRow>
-                    <TableHead>{t('submissions.id')}</TableHead>
                     <TableHead>{t('submissions.status')}</TableHead>
                     <TableHead>{t('submissions.score')}</TableHead>
                     <TableHead>{t('submissions.date')}</TableHead>
+                    <TableHead className="text-right">{t('submissions.id')}</TableHead>
                 </TableRow>
             </TableHeader>
             <TableBody>
                 {problemSubmissions.map(sub => (
-                    <TableRow key={sub.id}>
-                        <TableCell>
-                            <Link href={`/submissions?id=${sub.id}`} className="font-mono text-primary hover:underline">
-                                {sub.id.substring(0, 8)}...
-                            </Link>
-                        </TableCell>
+                    <TableRow key={sub.id}
+                        className="cursor-pointer transition-colors hover:bg-muted/50"
+                        onClick={() => router.push(`/submissions?id=${sub.id}`)}
+                    >
                         <TableCell><SubmissionStatusBadge status={sub.status} /></TableCell>
-                        <TableCell>{sub.score}</TableCell>
-                        <TableCell>{format(new Date(sub.CreatedAt), "Pp")}</TableCell>
+                        <TableCell>
+                            <span
+                                className="font-bold font-mono"
+                                style={{
+                                color: getScoreColor(sub.score ?? 0),
+                                }}
+                            >
+                                {sub.score}
+                            </span>
+                        </TableCell>
+                        <TableCell>{format(new Date(sub.CreatedAt), "MM/dd HH:mm:ss")}</TableCell>
+                        <TableCell className="text-right font-mono text-sm text-muted-foreground">
+                            <div className="flex items-center justify-end space-x-2">
+                                <span className="mx-2">{sub.id.substring(0, 8)}</span>
+                                <div
+                                    onClick={(e) => {
+                                    e.stopPropagation();
+                                    }}
+                                >
+                                    <CopyButton content={sub.id} size="sm" />
+                                </div>
+                            </div>
+                        </TableCell>
                     </TableRow>
                 ))}
             </TableBody>
@@ -78,7 +100,7 @@ function ProblemDetails() {
     if (!problem) return <div>{t('details.notFound')}</div>;
 
     return (
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="grid gap-6 lg:grid-cols-[6fr_4fr]">
             <div className="space-y-6">
                 <Card>
                     <CardHeader>

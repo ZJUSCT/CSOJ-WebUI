@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { format } from 'date-fns';
 import { useTranslations } from 'next-intl';
+import { Ban } from 'lucide-react';
 
 interface AuthState {
   token: string | null;
@@ -119,7 +120,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         <AlertDialog open={!!banInfo}>
           <AlertDialogContent className="bg-destructive text-destructive-foreground border-destructive-foreground/20">
             <AlertDialogHeader>
-              <AlertDialogTitle className="text-2xl font-bold">
+              <AlertDialogTitle className="flex items-center gap-3 text-2xl font-bold">
+                <Ban className="w-8 h-8 text-destructive-foreground" />
                 {t('title')}
               </AlertDialogTitle>
               <AlertDialogDescription asChild>
@@ -130,7 +132,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                   </div>
                   <div>
                     <p className="font-semibold">{t('untilLabel')}</p>
-                    <p className="font-normal font-mono">{format(new Date(banInfo.until), "yyyy-MM-dd HH:mm:ss")}</p>
+                    <p className="font-normal font-mono">
+                      {format(new Date(banInfo.until), "yyyy-MM-dd HH:mm:ss")}
+                    </p>
                   </div>
                 </div>
               </AlertDialogDescription>

@@ -200,7 +200,7 @@ export function SubmissionLogViewer({ submission, problem, onStatusUpdate }: Sub
                         value={container.id} 
                         disabled={!problem.workflow[index]?.show}
                     >
-                        {t('tabLabel', { step: index + 1, name: problem.workflow[index]?.name || 'Unnamed Step' })}
+                        {t('tabLabel', { step: index + 1, name: problem.workflow[index]?.name || '' }) + (problem.workflow[index]?.show ? '' : t('tabHidden'))}
                     </TabsTrigger>
                 ))}
             </TabsList>
