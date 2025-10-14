@@ -35,7 +35,7 @@ export function UserProfileCard({ userId }: UserProfileCardProps) {
             {user.signature && (
                 <div className="text-sm text-foreground flex items-start gap-2">
                     <Edit3 className="h-4 w-4 mt-1 text-muted-foreground shrink-0" />
-                    <p className="italic">{user.signature}</p>
+                    <p className="italic break-words whitespace-pre-wrap">{user.signature}</p>
                 </div>
             )}
         </div>

@@ -27,7 +27,7 @@ export default function ProfilePage() {
     // Schema definition must be inside the component or outside, but using t() inside requires it to be inside 
     // or passed as a function argument, let's redefine it here to use t() for error messages.
     const profileSchema = z.object({
-        nickname: z.string().min(1, t('form.nicknameRequired')).max(50),
+        nickname: z.string().min(1, t('form.nicknameRequired')).max(15),
         signature: z.string().max(100).optional(),
     });
 
