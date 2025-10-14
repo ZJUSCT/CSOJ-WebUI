@@ -37,7 +37,7 @@ function getScoreColor(score: number): string {
   return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
 }
 
-export function MySubmissionsList() {
+function MySubmissionsList() {
   const t = useTranslations('submissions');
 
   const { data: submissions, error, isLoading } = useSWR<Submission[]>('/submissions', fetcher, {

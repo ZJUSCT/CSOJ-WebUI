@@ -249,7 +249,7 @@ function ContestList() {
     );
 }
 
-export function ProblemCard({ problemId, index }: { problemId: string; index: number }) {
+function ProblemCard({ problemId, index }: { problemId: string; index: number }) {
     const t = useTranslations('contests');
     const { data: problem, isLoading } = useSWR<Problem>(`/problems/${problemId}`, fetcher);
 
