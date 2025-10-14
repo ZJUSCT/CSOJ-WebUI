@@ -78,12 +78,11 @@ function ProblemDetails() {
     if (!problem) return <div>{t('details.notFound')}</div>;
 
     return (
-        <div className="grid gap-8 lg:grid-cols-2">
+        <div className="grid gap-6 lg:grid-cols-2">
             <div className="space-y-6">
                 <Card>
                     <CardHeader>
                         <CardTitle className="text-2xl">{problem.name}</CardTitle>
-                        <CardDescription>{t('details.id')}: {problem.id}</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <MarkdownViewer 
