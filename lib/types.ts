@@ -7,8 +7,6 @@ export interface User {
   nickname: string;
   signature: string;
   avatar_url: string;
-  banned_until?: string | null;
-  ban_reason?: string;
 }
 
 export interface Announcement {

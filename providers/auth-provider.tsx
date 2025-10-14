@@ -5,8 +5,15 @@ import { jwtDecode, JwtPayload } from 'jwt-decode';
 import { useSWRConfig } from 'swr';
 import { User } from '@/lib/types';
 import api from '@/lib/api';
-import { useToast } from '@/hooks/use-toast';
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { format } from 'date-fns';
+import { useTranslations } from 'next-intl';
 
 interface AuthState {
   token: string | null;
@@ -23,26 +30,15 @@ export interface AuthContextType extends AuthState {
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const t = useTranslations('banAlert');
   const [authState, setAuthState] = useState<AuthState>({
     token: null,
     user: null,
     isAuthenticated: false,
     isLoading: true,
   });
+  const [banInfo, setBanInfo] = useState<{ reason: string; until: string } | null>(null);
   const { mutate } = useSWRConfig();
-  const { toast } = useToast();
-
-  const logout = useCallback(() => {
-    localStorage.removeItem('csoj_jwt');
-    setAuthState({
-      token: null,
-      user: null,
-      isAuthenticated: false,
-      isLoading: false,
-    });
-    // Clear all SWR cache on logout
-    mutate(() => true, undefined, { revalidate: false });
-  }, [mutate]);
 
   const fetchUserProfile = useCallback(async (token: string) => {
     try {
@@ -58,11 +54,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (error) {
       console.error('Failed to fetch user profile, logging out.', error);
       const errorResponse = (error as any).response;
-      if (!(errorResponse?.status === 403 && errorResponse?.data?.data?.banned_until)) {
+      if (!errorResponse || (errorResponse.status !== 403 || !errorResponse.data?.data?.ban_reason)) {
         logout();
       }
     }
+  }, []);
+
+  const logout = useCallback(() => {
+    localStorage.removeItem('csoj_jwt');
+    setAuthState({
+      token: null,
+      user: null,
+      isAuthenticated: false,
+      isLoading: false,
+    });
+    // Clear all SWR cache on logout
+    mutate(() => true, undefined, { revalidate: false });
+  }, [mutate]);
+
+  useEffect(() => {
+    const handleBan = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      const { reason, until } = customEvent.detail;
+      logout();
+      setBanInfo({ reason, until });
+    };
+
+    window.addEventListener('userBanned', handleBan);
+
+    return () => {
+      window.removeEventListener('userBanned', handleBan);
+    };
   }, [logout]);
+
 
   useEffect(() => {
     const token = localStorage.getItem('csoj_jwt');
@@ -83,30 +107,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [fetchUserProfile, logout]);
 
-  useEffect(() => {
-    const handleBanned = (event: Event) => {
-      const detail = (event as CustomEvent).detail;
-      logout();
-
-      toast({
-          variant: "destructive",
-          title: "Session Expired: Banned",
-          description: `You have been logged out. Reason: ${detail.ban_reason || 'No reason provided'}. Ban lifts on ${format(new Date(detail.banned_until), 'Pp')}`,
-          duration: 15000,
-      });
-
-      const publicAuthPaths = ['/login', '/register', '/callback'];
-      if (!publicAuthPaths.includes(window.location.pathname)) {
-        window.location.href = '/login';
-      }
-    };
-
-    window.addEventListener('auth-error-403-banned', handleBanned);
-    return () => {
-        window.removeEventListener('auth-error-403-banned', handleBanned);
-    };
-  }, [logout, toast]);
-
   const login = (token: string) => {
     localStorage.setItem('csoj_jwt', token);
     fetchUserProfile(token);
@@ -115,6 +115,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   return (
     <AuthContext.Provider value={{ ...authState, login, logout }}>
       {children}
+      {banInfo && (
+        <AlertDialog open={!!banInfo}>
+          <AlertDialogContent className="bg-destructive text-destructive-foreground border-destructive-foreground/20">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="text-2xl font-bold">
+                {t('title')}
+              </AlertDialogTitle>
+              <AlertDialogDescription asChild>
+                <div className="text-white text-lg pt-4 space-y-4">
+                  <div>
+                    <p className="font-semibold">{t('reasonLabel')}</p>
+                    <p className="font-normal">{banInfo.reason}</p>
+                  </div>
+                  <div>
+                    <p className="font-semibold">{t('untilLabel')}</p>
+                    <p className="font-normal font-mono">{format(new Date(banInfo.until), "yyyy-MM-dd HH:mm:ss")}</p>
+                  </div>
+                </div>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
     </AuthContext.Provider>
   );
 };
