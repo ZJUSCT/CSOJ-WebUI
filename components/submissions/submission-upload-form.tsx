@@ -12,6 +12,7 @@ import { Skeleton } from '../ui/skeleton';
 import Editor from "@monaco-editor/react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { minimatch } from "minimatch";
+import { useTranslations } from 'next-intl';
 
 interface SubmissionUploadFormProps {
     problemId: string;
@@ -35,6 +36,7 @@ function btoaUTF8(str: string) {
 }
 
 function AttemptsCounter({ problemId, onLimitReached }: { problemId: string, onLimitReached: (isReached: boolean) => void }) {
+    const t = useTranslations('submissions.upload.attemptsCounter'); // 使用 useTranslations
     const { data: attempts, isLoading } = useSWR<Attempts>(`/problems/${problemId}/attempts`, fetcher, {
         onSuccess: (data) => {
             if (data && data.remaining === 0) {
@@ -50,13 +52,12 @@ function AttemptsCounter({ problemId, onLimitReached }: { problemId: string, onL
         <div className="text-sm text-muted-foreground flex items-center gap-1">
             <Info className="h-4 w-4" />
             <span>
-                Attempts: {attempts.used}
-                {attempts.limit !== null ? ` / ${attempts.limit}` : ''}
+                {attempts.limit ? t('label', { used: attempts.used, limit: attempts.limit}) : ''}
                 {attempts.remaining !== null && attempts.remaining <= 3 && attempts.remaining > 0 && (
-                    <span className="font-bold text-yellow-500 ml-2">{attempts.remaining} remaining</span>
+                    <span className="font-bold text-yellow-500 ml-2">{t('remaining', { remaining: attempts.remaining })}</span>
                 )}
                  {attempts.remaining === 0 && (
-                    <span className="font-bold text-destructive ml-2">Limit reached</span>
+                    <span className="font-bold text-destructive ml-2">{t('limitReached')}</span>
                 )}
             </span>
         </div>
@@ -83,6 +84,7 @@ const getLanguageForFile = (filename: string = '') => {
 
 
 export default function SubmissionUploadForm({ problemId, uploadLimits }: SubmissionUploadFormProps) {
+    const t = useTranslations('submissions.upload'); // 使用 useTranslations
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isLimitReached, setIsLimitReached] = useState(false);
     const { toast } = useToast();
@@ -116,11 +118,15 @@ export default function SubmissionUploadForm({ problemId, uploadLimits }: Submis
 
         const allFiles = [...files, ...newFiles];
         if (uploadLimits.max_num > 0 && allFiles.length > uploadLimits.max_num) {
-            toast({ variant: 'destructive', title: 'Too many files', description: `You can upload a maximum of ${uploadLimits.max_num} files.` });
+            toast({ 
+                variant: 'destructive', 
+                title: t('uploader.tooManyFilesToast.title'), 
+                description: t('uploader.tooManyFilesToast.description', { maxNum: uploadLimits.max_num }) 
+            });
             return;
         }
         setFiles(prev => [...prev, ...newFiles]);
-    }, [files, uploadLimits.max_num, toast]);
+    }, [files, uploadLimits.max_num, toast, t]);
 
     const onDrop = useCallback((acceptedFiles: FileWithPath[]) => { addFiles(acceptedFiles); }, [addFiles]);
     const handleManualFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -174,13 +180,20 @@ export default function SubmissionUploadForm({ problemId, uploadLimits }: Submis
                 .map(([name, content]) => new File([content], name, { type: 'text/plain' }));
 
             if (filesToSubmit.every(f => f.size === 0)) {
-                toast({ variant: 'destructive', title: 'Content is empty', description: 'Please write some code before submitting.' });
+                toast({ 
+                    variant: 'destructive', 
+                    title: t('editor.emptyContentToast.title'), 
+                    description: t('editor.emptyContentToast.description') 
+                });
                 return;
             }
         } else { // activeMode === 'upload'
             filesToSubmit = files;
             if (filesToSubmit.length === 0) {
-                toast({ variant: 'destructive', title: 'No files selected' });
+                toast({ 
+                    variant: 'destructive', 
+                    title: t('submission.noFilesToast.title') 
+                });
                 return;
             }
         }
@@ -189,8 +202,8 @@ export default function SubmissionUploadForm({ problemId, uploadLimits }: Submis
         if (uploadLimits.max_size > 0 && totalSize > uploadLimits.max_size * 1024 * 1024) {
             toast({
                 variant: 'destructive',
-                title: 'Files too large',
-                description: `Total upload size cannot exceed ${uploadLimits.max_size} MB.`,
+                title: t('submission.fileTooLargeToast.title'),
+                description: t('submission.fileTooLargeToast.description', { maxSize: uploadLimits.max_size }),
             });
             return;
         }
@@ -206,16 +219,18 @@ export default function SubmissionUploadForm({ problemId, uploadLimits }: Submis
             const response = await api.post(`/problems/${problemId}/submit`, formData);
             const submissionId = response.data.data.submission_id;
             toast({
-                title: 'Submission successful!',
-                description: `Your submission ID is ${submissionId}`,
+                title: t('submission.successToast.title'),
+                description: t('submission.successToast.description', { submissionId }),
             });
             mutate(`/problems/${problemId}/attempts`);
             router.push(`/submissions?id=${submissionId}`);
         } catch (error: any) {
             toast({
                 variant: 'destructive',
-                title: 'Submission failed',
-                description: error.response?.data?.message || 'An unexpected error occurred.',
+                title: t('submission.failureToast.title'),
+                description: t.rich('submission.failureToast.description', { 
+                    message: error.response?.data?.message || 'An unexpected error occurred.' 
+                }),
             });
         } finally {
             setIsSubmitting(false);
@@ -256,23 +271,23 @@ export default function SubmissionUploadForm({ problemId, uploadLimits }: Submis
                 <input type="file" {...({ webkitdirectory: "true" } as any)} ref={folderInputRef} onChange={handleManualFileSelect} style={{ display: 'none' }} disabled={isLimitReached}/>
                 <UploadCloud className="h-10 w-10 text-muted-foreground" />
                 <p className="mt-2 text-sm text-muted-foreground text-center">
-                    {isDragActive ? 'Drop files or a folder here...' : 'Drag & drop files or a folder'}
+                    {isDragActive ? t('uploader.dragActive') : t('uploader.dragAndDrop')}
                 </p>
                 <div className='mt-4 flex flex-col sm:flex-row gap-2 w-full'>
                     <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()} disabled={isLimitReached} className='w-full'>
-                        <FileUp className="mr-2 h-4 w-4" /> Select Files
+                        <FileUp className="mr-2 h-4 w-4" /> {t('uploader.selectFilesButton')}
                     </Button>
                     <Button type="button" variant="outline" onClick={() => folderInputRef.current?.click()} disabled={isLimitReached} className='w-full'>
-                        <FolderUp className="mr-2 h-4 w-4" /> Select Folder
+                        <FolderUp className="mr-2 h-4 w-4" /> {t('uploader.selectFolderButton')}
                     </Button>
                 </div>
                 <p className="text-xs text-muted-foreground mt-4">
-                    Max {uploadLimits.max_num > 0 ? `${uploadLimits.max_num} files` : 'unlimited files'}, up to {uploadLimits.max_size > 0 ? `${uploadLimits.max_size} MB total` : 'unlimited size'}.
+                    {t('uploader.limits', { maxNum: uploadLimits.max_num, maxSize: uploadLimits.max_size })}
                 </p>
             </div>
             {files.length > 0 && (
                 <div className="space-y-2">
-                    <h4 className="font-semibold">Selected files:</h4>
+                    <h4 className="font-semibold">{t('uploader.selectedFilesHeader')}</h4>
                     <ul className="space-y-1 bg-muted p-3 rounded-md max-h-48 overflow-y-auto">
                         {files.map((file, index) => {
                             const displayPath = ((file as FileWithPath).path || (file as any).webkitRelativePath || file.name).replace(/^\/+/, "").replace(/^(\.\/)+/, "");
@@ -281,7 +296,7 @@ export default function SubmissionUploadForm({ problemId, uploadLimits }: Submis
                                     <span className="flex items-center gap-2 truncate">
                                         <FileIcon className="h-4 w-4 shrink-0"/>
                                         <span className="truncate" title={displayPath}>{displayPath}</span> 
-                                        <span className="text-muted-foreground shrink-0">({(file.size / 1024).toFixed(2)} KB)</span>
+                                        <span className="text-muted-foreground shrink-0">{t('uploader.fileSizeUnit', { size: (file.size / 1024).toFixed(2) })}</span>
                                     </span>
                                     <Button variant="ghost" size="icon" onClick={() => removeFile(file)} className="h-6 w-6 shrink-0">
                                         <X className="h-4 w-4" />
@@ -304,8 +319,8 @@ export default function SubmissionUploadForm({ problemId, uploadLimits }: Submis
             {showEditor && showUploader ? (
                 <Tabs value={activeMode} onValueChange={setActiveMode} className="w-full">
                     <TabsList className="grid w-full grid-cols-2">
-                        <TabsTrigger value="editor">Editor</TabsTrigger>
-                        <TabsTrigger value="upload">Upload</TabsTrigger>
+                        <TabsTrigger value="editor">{t('modeTabs.editor')}</TabsTrigger>
+                        <TabsTrigger value="upload">{t('modeTabs.upload')}</TabsTrigger>
                     </TabsList>
                     <TabsContent value="editor" className="mt-4">{renderEditor()}</TabsContent>
                     <TabsContent value="upload" className="mt-4">{renderUploader()}</TabsContent>
@@ -316,13 +331,13 @@ export default function SubmissionUploadForm({ problemId, uploadLimits }: Submis
                 renderUploader()
             ) : (
                 <div className="text-center text-muted-foreground p-4 border rounded-md">
-                    Submissions are not enabled for this problem.
+                    {t('submission.disabledMessage')}
                 </div>
             )}
             
             {(showEditor || showUploader) && (
                  <Button onClick={handleSubmit} disabled={isSubmitDisabled} className="w-full">
-                    {isSubmitting ? 'Submitting...' : 'Submit'}
+                    {isSubmitting ? t('submission.submittingButton') : t('submission.submitButton')}
                 </Button>
             )}
         </div>

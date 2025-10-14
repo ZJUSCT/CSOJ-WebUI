@@ -10,11 +10,18 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Copy, Timer } from "lucide-react";
 import { format, formatDistanceToNowStrict } from "date-fns";
+import { zhCN, enUS, Locale } from "date-fns/locale";
+import { useLocale } from "next-intl";
 import { useTranslations } from "next-intl";
 
 interface DecodedToken extends JwtPayload {}
 
 export function TokenInfoCard() {
+    const locale = useLocale();
+    const locales: Record<string, Locale> = {
+        zh: zhCN,
+        en: enUS,
+    };
     const t = useTranslations('Profile');
     const { token } = useAuth();
     const { toast } = useToast();
@@ -39,7 +46,7 @@ export function TokenInfoCard() {
             
             const updateCountdown = () => {
                 if (expiryDate > new Date()) {
-                    setExpiresIn(formatDistanceToNowStrict(expiryDate, { addSuffix: true }));
+                    setExpiresIn(formatDistanceToNowStrict(expiryDate, {locale: locales[locale] || enUS }));
                 } else {
                     setExpiresIn(t('token.expired'));
                 }

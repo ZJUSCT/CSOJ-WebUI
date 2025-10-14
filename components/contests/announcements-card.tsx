@@ -7,6 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Megaphone } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
+import { zhCN, enUS, Locale } from "date-fns/locale";
+import { useLocale } from "next-intl";
 import { Separator } from '../ui/separator';
 import MarkdownViewer from '../shared/markdown-viewer';
 import { useTranslations } from 'next-intl';
@@ -14,6 +16,11 @@ import { useTranslations } from 'next-intl';
 const fetcher = (url: string) => api.get(url).then(res => res.data.data);
 
 export function AnnouncementsCard({ contestId }: { contestId: string }) {
+    const locale = useLocale();
+    const locales: Record<string, Locale> = {
+        zh: zhCN,
+        en: enUS,
+    };
     const t = useTranslations('contests.announcements');
     
     const { data: announcements, error, isLoading } = useSWR<Announcement[]>(`/contests/${contestId}/announcements`, fetcher, {
@@ -45,8 +52,8 @@ export function AnnouncementsCard({ contestId }: { contestId: string }) {
                             <div key={ann.id}>
                                 <div className="space-y-1">
                                     <h3 className="font-semibold">{ann.title}</h3>
-                                    <p className="text-xs text-muted-foreground" title={format(new Date(ann.created_at), 'Pp')}>
-                                        {formatDistanceToNow(new Date(ann.created_at), { addSuffix: true })}
+                                    <p className="text-xs text-muted-foreground" title={format(new Date(ann.created_at), 'Pp', { locale: locales[locale] || enUS })}>
+                                        {formatDistanceToNow(new Date(ann.created_at), { addSuffix: true, locale: locales[locale] || enUS })}
                                     </p>
                                     <div className="pt-2">
                                         <MarkdownViewer content={ann.description} />

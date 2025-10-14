@@ -184,7 +184,7 @@ export default function MarkdownViewer({ content, assetContext, assetContextId }
     };
 
     return (
-        <div className="prose dark:prose-invert max-w-none">
+        <div className={cn("prose prose-tight dark:prose-invert max-w-none", "leading-normal")}>
             <ReactMarkdown 
                 remarkPlugins={[remarkGfm]}
                 components={components}

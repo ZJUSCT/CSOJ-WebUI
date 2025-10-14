@@ -57,7 +57,7 @@
       "none": "This contest is not active or has no problems."
     },
     "problemCard": {
-      "id": "Problem ID",
+      "id": "Problem",
       "view": "View Problem"
     },
     "trend": {
@@ -93,7 +93,7 @@
     "details": {
       "loadFail": "Failed to load problem. You may not have access to it yet.",
       "notFound": "Problem not found.",
-      "id": "Problem ID"
+      "id": "Problem"
     },
     "submitForm": {
       "title": "Submit Solution"
@@ -207,10 +207,11 @@
       "loadFail": "Failed to load submissions.",
       "none": "No submissions yet.",
       "table": {
-        "id": "ID",
-        "problemId": "Problem ID",
+        "id": "Submission ID",
+        "problemId": "Problem",
         "status": "Status",
         "score": "Score",
+        "node": "Node",
         "submittedAt": "Submitted At"
       }
     },
@@ -230,7 +231,8 @@
         "user": "User",
         "cluster": "Cluster",
         "node": "Node",
-        "stepProgress": "Step {{current}} of {{total}}: {{name}}"
+        "stepProgress": "Step {{current}} of {{total}}: {{name}}",
+        "stepProgressNoName": "Step {{current}} of {{total}}"
       },
       "judgeInfo": {
         "title": "Judge Info",
@@ -248,6 +250,81 @@
         "failTitle": "Error",
         "failDefault": "Failed to interrupt submission."
       }
+    },
+    "upload": {
+      "attemptsCounter": {
+        "label": "Attempts: {used} / {limit}",
+        "remaining": "{remaining} remaining",
+        "limitReached": "Limit reached"
+      },
+      "modeTabs": {
+        "editor": "Editor",
+        "upload": "Upload"
+      },
+      "editor": {
+        "emptyContentToast": {
+          "title": "Content is empty",
+          "description": "Please write some code before submitting."
+        }
+      },
+      "uploader": {
+        "dragAndDrop": "Drag & drop files or a folder",
+        "dragActive": "Drop files or a folder here...",
+        "selectFilesButton": "Select Files",
+        "selectFolderButton": "Select Folder",
+        "limits": "Max {maxNum, select, 0 {unlimited files} other {{maxNum} files}}, up to {maxSize, select, 0 {unlimited size} other {{maxSize} MB total}}.",
+        "tooManyFilesToast": {
+          "title": "Too many files",
+          "description": "You can upload a maximum of {maxNum} files."
+        },
+        "selectedFilesHeader": "Selected files:",
+        "fileSizeUnit": "({size} KB)"
+      },
+      "submission": {
+        "submitButton": "Submit",
+        "submittingButton": "Submitting...",
+        "noFilesToast": {
+          "title": "No files selected"
+        },
+        "fileTooLargeToast": {
+          "title": "Files too large",
+          "description": "Total upload size cannot exceed {maxSize} MB."
+        },
+        "successToast": {
+          "title": "Submission successful!",
+          "description": "Your submission ID is {submissionId}"
+        },
+        "failureToast": {
+          "title": "Submission failed",
+          "description": "{message}"
+        },
+        "disabledMessage": "Submissions are not enabled for this problem."
+      }
+    },
+    "logViewer": {
+      "staticLog": {
+        "statusFinished": "Finished",
+        "errorLoading": "Failed to load log."
+      },
+      "realtimeLog": {
+        "statusConnecting": "Connecting...",
+        "statusLive": "Live",
+        "statusClosing": "Closing...",
+        "statusDisconnected": "Disconnected",
+        "statusUninstantiated": "Uninstantiated",
+        "waitingOutput": "Waiting for judge output..."
+      },
+      "mainViewer": {
+        "tabLabel": "Step {step}: {name}",
+        "queueMessage": "Submission is in queue. No logs to display yet.",
+        "hiddenLogMessage": "Log for this step is hidden by the problem author."
+      }
+    },
+    "status": {
+      "Queued": "Queued",
+      "Running": "Running",
+      "Success": "Success",
+      "Failed": "Failed"
     }
   }
 }

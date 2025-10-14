@@ -8,86 +8,175 @@ import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
 import SubmissionStatusBadge from '@/components/shared/submission-status-badge';
 import { format, formatDistanceToNow } from 'date-fns';
+import { zhCN, enUS, Locale } from "date-fns/locale";
+import { useLocale } from "next-intl";
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 import { SubmissionLogViewer } from '@/components/submissions/submission-log-viewer';
-import { Clock, Code, Hash, Layers, Loader2, Server, Tag, User, XCircle } from 'lucide-react';
+import { Clock, Code, Hash, Layers, Loader2, Server, Tag, User, XCircle, Bookmark } from 'lucide-react';
 import { Progress } from "@/components/ui/progress";
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
 import { useTranslations } from 'next-intl';
+import { cn } from '@/lib/utils';
+import { CopyButton } from "@/components/ui/shadcn-io/copy-button";
 
 const fetcher = (url: string) => api.get(url).then(res => res.data.data);
 
-// Component for the list of submissions
+function getScoreColor(score: number): string {
+  const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(n, max));
+  const s = clamp(score, 0, 100);
+
+  const startHue = 0;
+  const endHue = 130;
+  const hue = startHue + ((endHue - startHue) * s) / 100;
+
+  const saturation = 50;
+  const lightness = 50;
+  return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+}
+
 function MySubmissionsList() {
-    const t = useTranslations('submissions');
-    const { data: submissions, error, isLoading } = useSWR<Submission[]>('/submissions', fetcher, {
-        refreshInterval: 5000
-    });
+  const t = useTranslations('submissions');
 
-    if (isLoading) return (
-        <Card>
-            <CardHeader>
-                <CardTitle>{t('list.title')}</CardTitle>
-                <CardDescription>{t('list.description')}</CardDescription>
-            </CardHeader>
-            <CardContent>
-                <div className="space-y-2">
-                    {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}
-                </div>
-            </CardContent>
-        </Card>
-    );
-    if (error) return <div>{t('list.loadFail')}</div>;
+  const { data: submissions, error, isLoading } = useSWR<Submission[]>('/submissions', fetcher, {
+    refreshInterval: 5000,
+  });
 
+  if (isLoading)
     return (
-        <Card>
-            <CardHeader>
-                <CardTitle>{t('list.title')}</CardTitle>
-                <CardDescription>{t('list.description')}</CardDescription>
-            </CardHeader>
-            <CardContent>
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>{t('list.table.id')}</TableHead>
-                            <TableHead>{t('list.table.problemId')}</TableHead>
-                            <TableHead>{t('list.table.status')}</TableHead>
-                            <TableHead>{t('list.table.score')}</TableHead>
-                            <TableHead>{t('list.table.submittedAt')}</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {submissions && submissions.length > 0 ? (
-                            submissions.map((sub) => (
-                                <TableRow key={sub.id}>
-                                    <TableCell>
-                                        <Link href={`/submissions?id=${sub.id}`} className="font-mono text-primary hover:underline">
-                                            {sub.id.substring(0, 8)}...
-                                        </Link>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Link href={`/problems?id=${sub.problem_id}`} className="text-primary hover:underline">
-                                            {sub.problem_id}
-                                        </Link>
-                                    </TableCell>
-                                    <TableCell><SubmissionStatusBadge status={sub.status} /></TableCell>
-                                    <TableCell>{sub.score}</TableCell>
-                                    <TableCell>{format(new Date(sub.CreatedAt), "Pp")}</TableCell>
-                                </TableRow>
-                            ))
-                        ) : (
-                            <TableRow>
-                                <TableCell colSpan={5} className="text-center">{t('list.none')}</TableCell>
-                            </TableRow>
-                        )}
-                    </TableBody>
-                </Table>
-            </CardContent>
-        </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>{t('list.title')}</CardTitle>
+          <CardDescription>{t('list.description')}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2">
+            {[...Array(5)].map((_, i) => (
+              <Skeleton key={i} className="h-10 w-full" />
+            ))}
+          </div>
+        </CardContent>
+      </Card>
     );
+
+  if (error) return <div>{t('list.loadFail')}</div>;
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{t('list.title')}</CardTitle>
+        <CardDescription>{t('list.description')}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Table>
+          <TableHeader>
+            <TableRow>
+                <TableHead>
+                <div className="flex items-center gap-2">
+                    <Hash className="h-4 w-4" />
+                    {t('list.table.status')}
+                </div>
+                </TableHead>
+                <TableHead>
+                <div className="flex items-center gap-2">
+                    <Tag className="h-4 w-4" />
+                    {t('list.table.score')}
+                </div>
+                </TableHead>
+                <TableHead>
+                <div className="flex items-center gap-2">
+                    <Code className="h-4 w-4" />
+                    {t('list.table.problemId')}
+                </div>
+                </TableHead>
+                <TableHead>
+                <div className="flex items-center gap-2">
+                    <Server className="h-4 w-4" />
+                    {t('list.table.node')}
+                </div>
+                </TableHead>
+                <TableHead>
+                <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4" />
+                    {t('list.table.submittedAt')}
+                </div>
+                </TableHead>
+                <TableHead className="text-right">
+                <div className="flex justify-end items-center gap-2">
+                    <Bookmark className="h-4 w-4" />
+                    {t('list.table.id')}
+                </div>
+                </TableHead>
+            </TableRow>
+            </TableHeader>
+          <TableBody>
+            {submissions && submissions.length > 0 ? (
+              submissions.map((sub) => (
+                <TableRow
+                  key={sub.id}
+                  className={cn(
+                    "transition-colors hover:bg-muted/50"
+                  )}
+                >
+                  <TableCell>
+                    <Link href={`/submissions?id=${sub.id}`} >
+                        <SubmissionStatusBadge status={sub.status} />
+                    </Link>
+                  </TableCell>
+                  <TableCell>
+                    <Link href={`/submissions?id=${sub.id}`} >
+                        <span
+                            className="font-semibold font-mono"
+                            style={{
+                                color: getScoreColor(sub.score ?? 0),
+                            }}
+                        >
+                            {sub.score}
+                        </span>
+                    </Link>
+                  </TableCell>
+                  <TableCell>
+                    <Link href={`/problems?id=${sub.problem_id}`} >
+                        <span className="text-primary hover:underline">{sub.problem_id}</span>
+                    </Link>
+                  </TableCell>
+                  <TableCell>
+                    <Link href={`/submissions?id=${sub.id}`} >
+                        {sub.node}
+                    </Link>
+                  </TableCell>
+                  <TableCell>
+                    <Link href={`/submissions?id=${sub.id}`} >
+                        {format(new Date(sub.CreatedAt), "MM/dd HH:mm:ss")}
+                    </Link>
+                </TableCell>
+                  <TableCell className="text-right font-mono text-sm text-muted-foreground">
+                    <div className="flex items-center justify-end space-x-2">
+                      <span className="mx-2">{sub.id.substring(0, 8)}</span>
+                      <div
+                        onClick={(e) => e.stopPropagation()}
+                        onPointerDown={(e) => e.stopPropagation()}
+                      >
+                        <CopyButton content={sub.id} size="sm" />
+                      </div>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center">
+                  {t('list.none')}
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </CardContent>
+    </Card>
+  );
 }
 
 function QueuePosition({ submissionId, cluster }: { submissionId: string, cluster: string }) {
@@ -107,6 +196,11 @@ function QueuePosition({ submissionId, cluster }: { submissionId: string, cluste
 
 // Component for submission details
 function SubmissionDetails({ submissionId }: { submissionId: string }) {
+    const locale = useLocale();
+    const locales: Record<string, Locale> = {
+        zh: zhCN,
+        en: enUS,
+    };
     const t = useTranslations('submissions');
     const { toast } = useToast();
     const { data: submission, error, isLoading, mutate } = useSWR<Submission>(`/submissions/${submissionId}`, fetcher, {
@@ -169,11 +263,19 @@ function SubmissionDetails({ submissionId }: { submissionId: string }) {
                         {(submission.status === 'Running') && totalSteps > 0 && (
                             <div>
                                 <Progress value={progress} className="w-full" />
-                                <p className="text-xs text-muted-foreground mt-1">{t('details.info.stepProgress', {
+                                <p className="text-xs text-muted-foreground mt-1">{
+                                problem?.workflow[submission.current_step]?.name ? 
+                                t('details.info.stepProgress', {
                                     current: submission.current_step + 1,
                                     total: totalSteps,
-                                    name: problem?.workflow[submission.current_step]?.name ?? ''
-                                })}</p>
+                                    name: problem?.workflow[submission.current_step]?.name
+                                })
+                                :
+                                t('details.info.stepProgressNoName', {
+                                    current: submission.current_step + 1,
+                                    total: totalSteps,
+                                })
+                            }</p>
                             </div>
                         )}
                         <div className="flex items-center justify-between">
@@ -182,7 +284,7 @@ function SubmissionDetails({ submissionId }: { submissionId: string }) {
                         </div>
                         <div className="flex items-center justify-between">
                             <span className="text-muted-foreground flex items-center gap-2"><Clock className="h-4 w-4"/>{t('details.info.submitted')}</span>
-                            <span>{formatDistanceToNow(new Date(submission.CreatedAt), { addSuffix: true })}</span>
+                            <span>{formatDistanceToNow(new Date(submission.CreatedAt), { addSuffix: true, locale: locales[locale] || enUS })}</span>
                         </div>
                         <div className="flex items-center justify-between">
                             <span className="text-muted-foreground flex items-center gap-2"><Code className="h-4 w-4"/>{t('details.info.problem')}</span>

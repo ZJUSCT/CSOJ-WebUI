@@ -91,7 +91,45 @@ const config = {
   		animation: {
   			'accordion-down': 'accordion-down 0.2s ease-out',
   			'accordion-up': 'accordion-up 0.2s ease-out'
-  		}
+  		},
+		// Tight Markdown Theme
+		typography: ({ theme }: { theme: any }) => ({ 
+			tight: {
+				css: {
+					'--tw-prose-body': {
+						lineHeight: theme('lineHeight.normal'),
+					},
+					p: {
+					'margin-top': theme('spacing.3'),
+					'margin-bottom': theme('spacing.3'),
+					},
+					ul: {
+					'margin-top': theme('spacing.3'),
+					'margin-bottom': theme('spacing.3'),
+					},
+					ol: {
+					'margin-top': theme('spacing.3'),
+					'margin-bottom': theme('spacing.3'),
+					},
+					'li': {
+						'margin-top': theme('spacing.1'),
+						'margin-bottom': theme('spacing.1'),
+					},
+					'h2': {
+						'margin-top': theme('spacing.3'),
+						'margin-bottom': theme('spacing.3'),
+					},
+					'h3': {
+						'margin-top': theme('spacing.2'),
+						'margin-bottom': theme('spacing.2'),
+					},
+					blockquote: {
+						'margin-top': theme('spacing.4'),
+						'margin-bottom': theme('spacing.4'),
+					},
+				},
+			},
+		}),
   	}
   },
   plugins: [
