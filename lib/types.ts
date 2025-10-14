@@ -43,6 +43,7 @@ export interface Problem {
         max_num: number;
         max_size: number;
         upload_form?: boolean;
+        upload_files?: string[];
         editor?: boolean;
         editor_files?: string[];
     };

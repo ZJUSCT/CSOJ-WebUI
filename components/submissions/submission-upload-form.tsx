@@ -11,6 +11,7 @@ import { Attempts } from '@/lib/types';
 import { Skeleton } from '../ui/skeleton';
 import Editor from "@monaco-editor/react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { minimatch } from "minimatch";
 
 interface SubmissionUploadFormProps {
     problemId: string;
@@ -18,6 +19,7 @@ interface SubmissionUploadFormProps {
         max_num: number;
         max_size: number;
         upload_form?: boolean;
+        upload_files?: string[];
         editor?: boolean;
         editor_files?: string[];
     };
@@ -98,7 +100,20 @@ export default function SubmissionUploadForm({ problemId, uploadLimits }: Submis
     const fileInputRef = useRef<HTMLInputElement>(null);
     const folderInputRef = useRef<HTMLInputElement>(null);
 
+    const uploadFiles = uploadLimits.upload_files || [];
+
     const addFiles = useCallback((newFiles: File[]) => {
+
+        if (uploadFiles.length > 0) {
+            newFiles = newFiles.filter(file => 
+                uploadFiles.some(pattern => minimatch(((file as FileWithPath).path || (file as any).webkitRelativePath || file.name).replace(/^\/+/, "").replace(/^(\.\/)+/, ""), pattern))
+            );
+            if (newFiles.length === 0) {
+                toast({ variant: 'destructive', title: 'No valid files', description: `No selected files match the allowed patterns: ${uploadFiles.join(', ')}` });
+                return;
+            }
+        }
+
         const allFiles = [...files, ...newFiles];
         if (uploadLimits.max_num > 0 && allFiles.length > uploadLimits.max_num) {
             toast({ variant: 'destructive', title: 'Too many files', description: `You can upload a maximum of ${uploadLimits.max_num} files.` });
@@ -183,7 +198,7 @@ export default function SubmissionUploadForm({ problemId, uploadLimits }: Submis
         setIsSubmitting(true);
         const formData = new FormData();
         filesToSubmit.forEach(file => {
-            const filePath = (file as FileWithPath).path || (file as any).webkitRelativePath || file.name;
+            const filePath = ((file as FileWithPath).path || (file as any).webkitRelativePath || file.name).replace(/^\/+/, "").replace(/^(\.\/)+/, "");
             formData.append('files', file, btoaUTF8(filePath));
         });
 
