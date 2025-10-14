@@ -123,14 +123,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 {t('title')}
               </AlertDialogTitle>
               <AlertDialogDescription asChild>
-                <div className="text-destructive-foreground/90 text-lg pt-4 space-y-4">
+                <div className="text-white text-lg pt-4 space-y-4">
                   <div>
                     <p className="font-semibold">{t('reasonLabel')}</p>
                     <p className="font-normal">{banInfo.reason}</p>
                   </div>
                   <div>
                     <p className="font-semibold">{t('untilLabel')}</p>
-                    <p className="font-normal">{format(new Date(banInfo.until), "yyyy-MM-dd HH:mm:ss")}</p>
+                    <p className="font-normal font-mono">{format(new Date(banInfo.until), "yyyy-MM-dd HH:mm:ss")}</p>
                   </div>
                 </div>
               </AlertDialogDescription>
