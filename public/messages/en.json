@@ -179,7 +179,11 @@
         "failDefault": "Login failed",
         "banned": {
           "title": "Login Denied: Account Banned",
-          "description": "Reason: {reason}. Ban lifts on {until}."
+          "description": "Reason: {reason}. Ban lifts on {until}.",
+          "noReason": "No reason provided.",
+          "reasonLabel": "Reason",
+          "untilLabel": "Ban Lifts",
+          "closeButton": "Close"
         }
       }
     },

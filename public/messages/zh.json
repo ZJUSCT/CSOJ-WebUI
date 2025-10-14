@@ -178,8 +178,12 @@
         "failTitle": "登录失败",
         "failDefault": "登录失败，请检查凭证",
         "banned": {
-          "title": "账户被封禁",
-          "description": "原因：{reason}。封禁解除时间：{until}。"
+          "title": "登录被拒：账号已被封禁",
+          "description": "原因：{reason}。封禁将于 {until} 解除。",
+          "noReason": "未提供原因。",
+          "reasonLabel": "原因",
+          "untilLabel": "封禁截止",
+          "closeButton": "关闭"
         }
       }
     },
