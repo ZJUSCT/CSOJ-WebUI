@@ -3,7 +3,6 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
-import { useState } from "react";
 import {
   Card,
   CardContent,
@@ -19,15 +18,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
@@ -41,7 +31,6 @@ import { AuthStatus } from "@/lib/types";
 import { Skeleton } from "../ui/skeleton";
 import { useTranslations } from "next-intl";
 import { format } from "date-fns";
-import { Ban } from "lucide-react";
 
 const fetcher = (url: string) => api.get(url).then(res => res.data.data);
 
@@ -51,9 +40,6 @@ export function LoginForm() {
   const router = useRouter();
   const { toast } = useToast();
   const gitlabLoginUrl = `/api/v1/auth/gitlab/login`;
-
-  const [isBannedDialogOpen, setIsBannedDialogOpen] = useState(false);
-  const [banInfo, setBanInfo] = useState<{ reason: string; until: string } | null>(null);
   
   // Define schema using t() for localized error messages
   const formSchema = z.object({
@@ -84,12 +70,15 @@ export function LoginForm() {
     } catch (error: any) {
       const errorData = error.response?.data;
       if (error.response?.status === 403 && errorData?.data?.banned_until) {
-          // Instead of a toast, open the custom dialog
-          setBanInfo({
-              reason: errorData.data.ban_reason || t('toast.banned.noReason'),
-              until: format(new Date(errorData.data.banned_until), 'Pp')
+          toast({
+              variant: "destructive",
+              title: t('toast.banned.title'),
+              description: t('toast.banned.description', {
+                  reason: errorData.data.ban_reason || 'No reason provided.',
+                  until: format(new Date(errorData.data.banned_until), 'Pp')
+              }),
+              duration: 10000,
           });
-          setIsBannedDialogOpen(true);
       } else {
           toast({
               variant: "destructive",
@@ -124,115 +113,86 @@ export function LoginForm() {
   }
 
   return (
-    <>
-      <Card>
-        <CardHeader>
-          <CardTitle>{t('title')}</CardTitle>
-          <CardDescription>
-            {authStatus?.local_auth_enabled
-              ? t('descriptionLocal')
-              : t('descriptionExternal')}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {authStatus?.local_auth_enabled && (
-            <>
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="username"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t('form.username')}</FormLabel>
-                        <FormControl>
-                          <Input placeholder="your_username" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t('form.password')}</FormLabel>
-                        <FormControl>
-                          <Input type="password" placeholder="********" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <Button
-                    type="submit"
-                    className="w-full"
-                    disabled={form.formState.isSubmitting}
-                  >
-                    {form.formState.isSubmitting ? t('form.loggingIn') : t('form.loginButton')}
-                  </Button>
-                </form>
-              </Form>
+    <Card>
+      <CardHeader>
+        <CardTitle>{t('title')}</CardTitle>
+        <CardDescription>
+          {authStatus?.local_auth_enabled
+            ? t('descriptionLocal')
+            : t('descriptionExternal')}
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        {authStatus?.local_auth_enabled && (
+          <>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="username"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('form.username')}</FormLabel>
+                      <FormControl>
+                        <Input placeholder="your_username" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('form.password')}</FormLabel>
+                      <FormControl>
+                        <Input type="password" placeholder="********" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button
+                  type="submit"
+                  className="w-full"
+                  disabled={form.formState.isSubmitting}
+                >
+                  {form.formState.isSubmitting ? t('form.loggingIn') : t('form.loginButton')}
+                </Button>
+              </form>
+            </Form>
 
-              <div className="relative my-4">
-                <div className="absolute inset-0 flex items-center">
-                  <Separator />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-card px-2 text-muted-foreground">
-                    {t('separatorText')}
-                  </span>
-                </div>
+            <div className="relative my-4">
+              <div className="absolute inset-0 flex items-center">
+                <Separator />
               </div>
-            </>
-          )}
-          
-          {/* GitLab Login Button - Assuming GitLab is always enabled for now */}
-          <Button variant="outline" className="w-full" asChild>
-            <a href={gitlabLoginUrl}>
-              <SiGitlab className="mr-2 h-4 w-4" />
-              {t('gitlabButton')}
-            </a>
-          </Button>
-
-          {authStatus?.local_auth_enabled && (
-            <div className="mt-4 text-center text-sm">
-              {t('noAccount')}{" "}
-              <Link href="/register" className="underline">
-                {t('registerLink')}
-              </Link>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-card px-2 text-muted-foreground">
+                  {t('separatorText')}
+                </span>
+              </div>
             </div>
-          )}
-        </CardContent>
-      </Card>
+          </>
+        )}
+        
+        {/* GitLab Login Button - Assuming GitLab is always enabled for now */}
+        <Button variant="outline" className="w-full" asChild>
+          <a href={gitlabLoginUrl}>
+            <SiGitlab className="mr-2 h-4 w-4" />
+            {t('gitlabButton')}
+          </a>
+        </Button>
 
-      <AlertDialog open={isBannedDialogOpen} onOpenChange={setIsBannedDialogOpen}>
-          <AlertDialogContent className="bg-destructive text-destructive-foreground border-destructive-foreground/20">
-              <AlertDialogHeader>
-                  <AlertDialogTitle className="flex items-center gap-2">
-                      <Ban className="h-6 w-6" />
-                      {t('toast.banned.title')}
-                  </AlertDialogTitle>
-                  <AlertDialogDescription className="text-destructive-foreground/90 pt-2 space-y-2">
-                      <p>
-                          <strong>{t('toast.banned.reasonLabel')}:</strong> {banInfo?.reason}
-                      </p>
-                      <p>
-                          <strong>{t('toast.banned.untilLabel')}:</strong> {banInfo?.until}
-                      </p>
-                  </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                  <AlertDialogAction
-                      onClick={() => setIsBannedDialogOpen(false)}
-                      className="bg-destructive-foreground text-destructive hover:bg-destructive-foreground/90"
-                  >
-                      {t('toast.banned.closeButton')}
-                  </AlertDialogAction>
-              </AlertDialogFooter>
-          </AlertDialogContent>
-      </AlertDialog>
-    </>
+        {authStatus?.local_auth_enabled && (
+          <div className="mt-4 text-center text-sm">
+            {t('noAccount')}{" "}
+            <Link href="/register" className="underline">
+              {t('registerLink')}
+            </Link>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
