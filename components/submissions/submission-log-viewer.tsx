@@ -7,6 +7,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '../ui/tabs';
 import useSWR from 'swr';
 import api from '@/lib/api';
 import { Skeleton } from '../ui/skeleton';
+import { useTranslations } from 'next-intl';
 
 interface LogMessage {
     stream: 'stdout' | 'stderr' | 'info' | 'error';
@@ -15,12 +16,14 @@ interface LogMessage {
 
 // --- Sub-component for displaying static logs of finished containers ---
 const StaticLogViewer = ({ submissionId, containerId }: { submissionId: string, containerId: string }) => {
+    const t = useTranslations('submissions.logViewer.staticLog');
     const textFetcher = (url: string) => api.get(url, { responseType: 'text' }).then(res => res.data);
     const { data: logText, error, isLoading } = useSWR(`/submissions/${submissionId}/containers/${containerId}/log`, textFetcher);
     const logContainerRef = useRef<HTMLDivElement>(null);
 
     const messages: LogMessage[] = useMemo(() => {
         if (!logText) return [];
+        // The static log endpoint returns lines, each line is expected to be a JSON object
         return logText
             .split('\n')
             .filter((line: string) => line.trim() !== '')
@@ -29,6 +32,7 @@ const StaticLogViewer = ({ submissionId, containerId }: { submissionId: string, 
                     return JSON.parse(line) as LogMessage;
                 } catch (e) {
                     console.error("Failed to parse log line as JSON:", line);
+                    // Fallback to plain text message if parsing fails
                     return { stream: 'stdout', data: line };
                 }
             });
@@ -44,14 +48,14 @@ const StaticLogViewer = ({ submissionId, containerId }: { submissionId: string, 
         <div className="relative">
             <div className="absolute top-2 right-6 text-xs font-semibold flex items-center gap-2 z-10">
                 <span className="h-2 w-2 rounded-full bg-gray-400"></span>
-                Finished
+                {t('statusFinished')}
             </div>
             <div
                 ref={logContainerRef}
                 className="font-mono text-xs bg-muted rounded-md h-[60vh] overflow-y-auto p-4"
             >
                 {isLoading && <Skeleton className="h-[60vh] w-full" />}
-                {error && <p className="text-red-400">Failed to load log.</p>}
+                {error && <p className="text-red-400">{t('errorLoading')}</p>}
                 {messages.length > 0 && messages.map((msg, index) => (
                     <span key={index} className="whitespace-pre-wrap break-all">
                         {msg.stream === 'stderr' || msg.stream === 'error' ? (
@@ -71,6 +75,7 @@ const StaticLogViewer = ({ submissionId, containerId }: { submissionId: string, 
 
 // --- Sub-component for streaming real-time logs via WebSocket ---
 const RealtimeLogViewer = ({ wsUrl, onStatusUpdate }: { wsUrl: string | null, onStatusUpdate: () => void }) => {
+    const t = useTranslations('submissions.logViewer.realtimeLog');
     const [messages, setMessages] = useState<LogMessage[]>([]);
     const logContainerRef = useRef<HTMLDivElement>(null);
 
@@ -104,13 +109,15 @@ const RealtimeLogViewer = ({ wsUrl, onStatusUpdate }: { wsUrl: string | null, on
         }
     }, [messages]);
 
-    const connectionStatus = {
-        [ReadyState.CONNECTING]: { text: 'Connecting...', color: 'bg-yellow-500' },
-        [ReadyState.OPEN]: { text: 'Live', color: 'bg-green-500 animate-pulse' },
-        [ReadyState.CLOSING]: { text: 'Closing...', color: 'bg-yellow-500' },
-        [ReadyState.CLOSED]: { text: 'Disconnected', color: 'bg-red-500' },
-        [ReadyState.UNINSTANTIATED]: { text: 'Uninstantiated', color: 'bg-gray-500' },
-    }[readyState];
+    const connectionStatus = useMemo(() => {
+        return {
+            [ReadyState.CONNECTING]: { text: t('statusConnecting'), color: 'bg-yellow-500' },
+            [ReadyState.OPEN]: { text: t('statusLive'), color: 'bg-green-500 animate-pulse' },
+            [ReadyState.CLOSING]: { text: t('statusClosing'), color: 'bg-yellow-500' },
+            [ReadyState.CLOSED]: { text: t('statusDisconnected'), color: 'bg-red-500' },
+            [ReadyState.UNINSTANTIATED]: { text: t('statusUninstantiated'), color: 'bg-gray-500' },
+        }[readyState];
+    }, [readyState, t]);
 
     return (
         <div className="relative">
@@ -122,7 +129,7 @@ const RealtimeLogViewer = ({ wsUrl, onStatusUpdate }: { wsUrl: string | null, on
                 ref={logContainerRef}
                 className="font-mono text-xs bg-muted rounded-md h-[60vh] overflow-y-auto p-4"
             >
-                {messages.length === 0 && <p className="text-muted-foreground">Waiting for judge output...</p>}
+                {messages.length === 0 && <p className="text-muted-foreground">{t('waitingOutput')}</p>}
                 {messages.map((msg, index) => (
                     <span key={index} className="whitespace-pre-wrap break-all">
                         {msg.stream === 'stderr' || msg.stream === 'error' ? (
@@ -147,6 +154,7 @@ interface SubmissionLogViewerProps {
 }
 
 export function SubmissionLogViewer({ submission, problem, onStatusUpdate }: SubmissionLogViewerProps) {
+    const t = useTranslations('submissions.logViewer.mainViewer');
     const { token } = useAuth();
     const [selectedContainerId, setSelectedContainerId] = useState<string | null>(null);
 
@@ -165,7 +173,7 @@ export function SubmissionLogViewer({ submission, problem, onStatusUpdate }: Sub
     if (submission.containers.length === 0) {
         return (
             <div className="font-mono text-xs bg-muted rounded-md h-[60vh] overflow-y-auto p-4 text-muted-foreground flex items-center justify-center">
-                Submission is in queue. No logs to display yet.
+                {t('queueMessage')}
             </div>
         );
     }
@@ -187,8 +195,12 @@ export function SubmissionLogViewer({ submission, problem, onStatusUpdate }: Sub
         <Tabs value={selectedContainerId ?? ""} onValueChange={setSelectedContainerId} className="w-full">
             <TabsList className="grid w-full" style={{gridTemplateColumns: `repeat(${submission.containers.length}, minmax(0, 1fr))`}}>
                 {submission.containers.map((container, index) => (
-                    <TabsTrigger key={container.id} value={container.id} disabled={!problem.workflow[index]?.show}>
-                        Step {index + 1}: {problem.workflow[index]?.name || 'Unnamed Step'}
+                    <TabsTrigger 
+                        key={container.id} 
+                        value={container.id} 
+                        disabled={!problem.workflow[index]?.show}
+                    >
+                        {t('tabLabel', { step: index + 1, name: problem.workflow[index]?.name || 'Unnamed Step' })}
                     </TabsTrigger>
                 ))}
             </TabsList>
@@ -200,7 +212,7 @@ export function SubmissionLogViewer({ submission, problem, onStatusUpdate }: Sub
                     <TabsContent key={container.id} value={container.id} className="mt-4">
                         {!canShow ? (
                             <div className="font-mono text-xs bg-muted rounded-md h-[60vh] overflow-y-auto p-4 text-muted-foreground flex items-center justify-center">
-                                Log for this step is hidden by the problem author.
+                                {t('hiddenLogMessage')}
                             </div>
                         ) : isRunning ? (
                             <RealtimeLogViewer wsUrl={getWsUrl(container.id)} onStatusUpdate={onStatusUpdate} />
