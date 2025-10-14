@@ -6,7 +6,8 @@ import { SWRProvider } from "@/providers/swr-provider";
 import { AuthProvider } from "@/providers/auth-provider";
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/providers/theme-provider";
-import {NextIntlClientProvider} from 'next-intl';
+// import {NextIntlClientProvider} from 'next-intl';
+import { ClientIntlProvider } from "@/providers/i18n-provider";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -28,7 +29,7 @@ export default function RootLayout({
           inter.variable
         )}
       >
-        <NextIntlClientProvider>
+        <ClientIntlProvider>
           <ThemeProvider
             attribute="class"
             defaultTheme="system"
@@ -39,7 +40,7 @@ export default function RootLayout({
             </AuthProvider>
             <Toaster />
           </ThemeProvider>
-        </NextIntlClientProvider>
+        </ClientIntlProvider>
       </body>
     </html>
   );
