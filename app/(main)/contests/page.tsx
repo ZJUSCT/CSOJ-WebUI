@@ -23,7 +23,7 @@ import { UserProfileCard } from '@/components/shared/user-profile-card';
 import { getInitials } from '@/lib/utils';
 import EchartsTrendChart from '@/components/charts/echarts-trend-chart';
 import { AnnouncementsCard } from '@/components/contests/announcements-card';
-import { UserScoreCard } from '@/components/contests/user-score-card';
+import UserScoreCard from '@/components/contests/user-score-card';
 
 const fetcher = (url: string) => api.get(url).then(res => res.data.data);
 
@@ -536,8 +536,8 @@ function ContestDetailView({ contestId, view }: { contestId: string, view: strin
                 </div>
 
                 <div className="space-y-6 lg:sticky lg:top-20">
-                     <AnnouncementsCard contestId={contestId} /> 
                      <UserScoreCard contestId={contestId} />
+                     <AnnouncementsCard contestId={contestId} /> 
                 </div>
             </div>
         </div>

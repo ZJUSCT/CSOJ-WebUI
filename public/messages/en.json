@@ -272,6 +272,7 @@
     "upload": {
       "attemptsCounter": {
         "label": "Attempts: {used} / {limit}",
+        "label_unlimited": "No submission limit",
         "remaining": "{remaining} remaining",
         "limitReached": "Limit reached"
       },
@@ -334,6 +335,7 @@
       },
       "mainViewer": {
         "tabLabel": "Step {step}: {name}",
+        "tabHidden": " (Hidden)",
         "queueMessage": "Submission is in queue. No logs to display yet.",
         "hiddenLogMessage": "Log for this step is hidden by the problem author."
       }

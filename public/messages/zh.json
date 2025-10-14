@@ -32,7 +32,7 @@
       "ongoing": "进行中",
       "finished": "已结束",
       "ended": "已结束",
-      "live": "实时赛况"
+      "live": "进行中"
     },
     "registration": {
       "successTitle": "报名成功",
@@ -272,6 +272,7 @@
     "upload": {
       "attemptsCounter": {
         "label": "提交次数: {used} / {limit}",
+        "label_unlimited": "无提交次数限制",
         "remaining": "剩余 {remaining} 次",
         "limitReached": "提交次数达到限制"
       },
@@ -334,6 +335,7 @@
       },
       "mainViewer": {
         "tabLabel": "第 {step} 步: {name}",
+        "tabHidden": " (已隐藏)",
         "queueMessage": "提交正在队列中，暂无日志可显示",
         "hiddenLogMessage": "该步骤的日志被隐藏"
       }

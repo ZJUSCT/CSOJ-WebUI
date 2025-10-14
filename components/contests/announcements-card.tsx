@@ -47,7 +47,7 @@ export function AnnouncementsCard({ contestId }: { contestId: string }) {
                 )}
                 {error && <p className="text-sm text-destructive">{t('loadFail')}</p>}
                 {!isLoading && announcements && announcements.length > 0 ? (
-                    <div className="space-y-6">
+                    <div className="space-y-3">
                         {announcements.map((ann, index) => (
                             <div key={ann.id}>
                                 <div className="space-y-1">
@@ -55,7 +55,7 @@ export function AnnouncementsCard({ contestId }: { contestId: string }) {
                                     <p className="text-xs text-muted-foreground" title={format(new Date(ann.created_at), 'Pp', { locale: locales[locale] || enUS })}>
                                         {formatDistanceToNow(new Date(ann.created_at), { addSuffix: true, locale: locales[locale] || enUS })}
                                     </p>
-                                    <div className="pt-2">
+                                    <div>
                                         <MarkdownViewer content={ann.description} />
                                     </div>
                                 </div>

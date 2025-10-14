@@ -36,7 +36,7 @@ function btoaUTF8(str: string) {
 }
 
 function AttemptsCounter({ problemId, onLimitReached }: { problemId: string, onLimitReached: (isReached: boolean) => void }) {
-    const t = useTranslations('submissions.upload.attemptsCounter'); // 使用 useTranslations
+    const t = useTranslations('submissions.upload.attemptsCounter');
     const { data: attempts, isLoading } = useSWR<Attempts>(`/problems/${problemId}/attempts`, fetcher, {
         onSuccess: (data) => {
             if (data && data.remaining === 0) {
@@ -52,11 +52,11 @@ function AttemptsCounter({ problemId, onLimitReached }: { problemId: string, onL
         <div className="text-sm text-muted-foreground flex items-center gap-1">
             <Info className="h-4 w-4" />
             <span>
-                {attempts.limit ? t('label', { used: attempts.used, limit: attempts.limit}) : ''}
+                {attempts.limit ? t('label', { used: attempts.used, limit: attempts.limit}) : t('label_unlimited')}
                 {attempts.remaining !== null && attempts.remaining <= 3 && attempts.remaining > 0 && (
                     <span className="font-bold text-yellow-500 ml-2">{t('remaining', { remaining: attempts.remaining })}</span>
                 )}
-                 {attempts.remaining === 0 && (
+                {attempts.remaining === 0 && (
                     <span className="font-bold text-destructive ml-2">{t('limitReached')}</span>
                 )}
             </span>

@@ -21,25 +21,15 @@ import { Separator } from '@/components/ui/separator';
 import { useTranslations } from 'next-intl';
 import { cn } from '@/lib/utils';
 import { CopyButton } from "@/components/ui/shadcn-io/copy-button";
+import { useRouter } from "next/navigation";
+import { getScoreColor } from '@/lib/utils';
 import MarkdownViewer from '@/components/shared/markdown-viewer';
 
 const fetcher = (url: string) => api.get(url).then(res => res.data.data);
 
-function getScoreColor(score: number): string {
-  const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(n, max));
-  const s = clamp(score, 0, 100);
-
-  const startHue = 0;
-  const endHue = 130;
-  const hue = startHue + ((endHue - startHue) * s) / 100;
-
-  const saturation = 50;
-  const lightness = 50;
-  return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
-}
-
 function MySubmissionsList() {
   const t = useTranslations('submissions');
+  const router = useRouter();
 
   const { data: submissions, error, isLoading } = useSWR<Submission[]>('/submissions', fetcher, {
     refreshInterval: 5000,
@@ -67,8 +57,7 @@ function MySubmissionsList() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{t('list.title')}</CardTitle>
-        <CardDescription>{t('list.description')}</CardDescription>
+        <CardTitle className="text-2xl font-bold">{t('list.title')}</CardTitle>
       </CardHeader>
       <CardContent>
         <Table>
@@ -118,47 +107,37 @@ function MySubmissionsList() {
                 <TableRow
                   key={sub.id}
                   className={cn(
-                    "transition-colors hover:bg-muted/50"
+                    "cursor-pointer transition-colors hover:bg-muted/50"
                   )}
+                  onClick={() => router.push(`/submissions?id=${sub.id}`)}
                 >
                   <TableCell>
-                    <Link href={`/submissions?id=${sub.id}`} >
-                        <SubmissionStatusBadge status={sub.status} />
-                    </Link>
+                    <SubmissionStatusBadge status={sub.status} />
                   </TableCell>
                   <TableCell>
-                    <Link href={`/submissions?id=${sub.id}`} >
-                        <span
-                            className="font-semibold font-mono"
-                            style={{
-                                color: getScoreColor(sub.score ?? 0),
-                            }}
-                        >
-                            {sub.score}
-                        </span>
-                    </Link>
+                    <span
+                      className="font-bold font-mono"
+                      style={{
+                        color: getScoreColor(sub.score ?? 0),
+                      }}
+                    >
+                      {sub.score}
+                    </span>
                   </TableCell>
                   <TableCell>
-                    <Link href={`/problems?id=${sub.problem_id}`} >
-                        <span className="text-primary hover:underline">{sub.problem_id}</span>
-                    </Link>
+                    {sub.problem_id}
                   </TableCell>
+                  <TableCell>{sub.node}</TableCell>
                   <TableCell>
-                    <Link href={`/submissions?id=${sub.id}`} >
-                        {sub.node}
-                    </Link>
+                    {format(new Date(sub.CreatedAt), "MM/dd HH:mm:ss")}
                   </TableCell>
-                  <TableCell>
-                    <Link href={`/submissions?id=${sub.id}`} >
-                        {format(new Date(sub.CreatedAt), "MM/dd HH:mm:ss")}
-                    </Link>
-                </TableCell>
                   <TableCell className="text-right font-mono text-sm text-muted-foreground">
                     <div className="flex items-center justify-end space-x-2">
                       <span className="mx-2">{sub.id.substring(0, 8)}</span>
                       <div
-                        onClick={(e) => e.stopPropagation()}
-                        onPointerDown={(e) => e.stopPropagation()}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                        }}
                       >
                         <CopyButton content={sub.id} size="sm" />
                       </div>
@@ -168,7 +147,7 @@ function MySubmissionsList() {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={5} className="text-center">
+                <TableCell colSpan={6} className="text-center">
                   {t('list.none')}
                 </TableCell>
               </TableRow>
