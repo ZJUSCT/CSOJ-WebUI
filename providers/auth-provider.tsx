@@ -57,7 +57,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
     } catch (error) {
       console.error('Failed to fetch user profile, logging out.', error);
-      logout();
+      const errorResponse = (error as any).response;
+      if (!(errorResponse?.status === 403 && errorResponse?.data?.data?.banned_until)) {
+        logout();
+      }
     }
   }, [logout]);
 
@@ -88,11 +91,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       toast({
           variant: "destructive",
           title: "Session Expired: Banned",
-          description: `You have been banned. Reason: ${detail.ban_reason || 'No reason provided'}. Ban lifts on ${format(new Date(detail.banned_until), 'Pp')}`,
+          description: `You have been logged out. Reason: ${detail.ban_reason || 'No reason provided'}. Ban lifts on ${format(new Date(detail.banned_until), 'Pp')}`,
           duration: 15000,
       });
 
-      if (window.location.pathname !== '/login') {
+      const publicAuthPaths = ['/login', '/register', '/callback'];
+      if (!publicAuthPaths.includes(window.location.pathname)) {
         window.location.href = '/login';
       }
     };
