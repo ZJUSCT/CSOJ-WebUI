@@ -4,6 +4,7 @@ import { MainNav } from "@/components/layout/main-nav";
 import { UserNav } from "@/components/layout/user-nav";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import {useTranslations} from 'next-intl';
+import { LanguageToggle } from "@/components/layout/lang-toggle";
 
 function MainLayout({ children }: { children: React.ReactNode }) {
   const t = useTranslations('home');
@@ -16,6 +17,7 @@ function MainLayout({ children }: { children: React.ReactNode }) {
           <div className="ml-auto flex-1 sm:flex-initial">
           </div>
           <ThemeToggle />
+          <LanguageToggle />
           <UserNav />
         </div>
       </header>

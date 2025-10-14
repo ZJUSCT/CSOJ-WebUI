@@ -199,5 +199,55 @@
         "failDefault": "Registration failed"
       }
     }
+  },
+  "submissions": {
+    "list": {
+      "title": "My Submissions",
+      "description": "A list of all your submissions.",
+      "loadFail": "Failed to load submissions.",
+      "none": "No submissions yet.",
+      "table": {
+        "id": "ID",
+        "problemId": "Problem ID",
+        "status": "Status",
+        "score": "Score",
+        "submittedAt": "Submitted At"
+      }
+    },
+    "details": {
+      "loadFail": "Failed to load submission.",
+      "notFound": "Submission not found.",
+      "log": {
+        "title": "Live Log",
+        "description": "Real-time output from the judge. Select a step to view its log."
+      },
+      "info": {
+        "title": "Submission Info",
+        "status": "Status",
+        "score": "Score",
+        "submitted": "Submitted",
+        "problem": "Problem",
+        "user": "User",
+        "cluster": "Cluster",
+        "node": "Node",
+        "stepProgress": "Step {{current}} of {{total}}: {{name}}"
+      },
+      "judgeInfo": {
+        "title": "Judge Info",
+        "description": "This is the raw JSON output from the final step of the judging process."
+      },
+      "queue": {
+        "position": "Queue Position",
+        "info": "#{{position}} in {{cluster}} queue"
+      },
+      "interrupt": {
+        "button": "Interrupt",
+        "confirm": "Are you sure you want to interrupt this submission? This action cannot be undone.",
+        "successTitle": "Success",
+        "successDescription": "Submission interruption request sent.",
+        "failTitle": "Error",
+        "failDefault": "Failed to interrupt submission."
+      }
+    }
   }
 }
