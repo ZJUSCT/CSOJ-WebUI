@@ -84,17 +84,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const handleBanned = (event: Event) => {
       const detail = (event as CustomEvent).detail;
       logout();
-
       toast({
           variant: "destructive",
           title: "Session Expired: Banned",
           description: `You have been banned. Reason: ${detail.ban_reason || 'No reason provided'}. Ban lifts on ${format(new Date(detail.banned_until), 'Pp')}`,
           duration: 15000,
       });
-
-      if (window.location.pathname !== '/login') {
-        window.location.href = '/login';
-      }
+      window.location.href = '/login';
     };
 
     window.addEventListener('auth-error-403-banned', handleBanned);
