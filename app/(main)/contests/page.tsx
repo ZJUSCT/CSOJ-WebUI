@@ -536,8 +536,8 @@ function ContestDetailView({ contestId, view }: { contestId: string, view: strin
                 </div>
 
                 <div className="space-y-6 lg:sticky lg:top-20">
+                     <AnnouncementsCard contestId={contestId} /> 
                      <UserScoreCard contestId={contestId} />
-                     <AnnouncementsCard contestId={contestId} />
                 </div>
             </div>
         </div>
