@@ -23,6 +23,10 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 403 && error.response.data?.data?.banned_until) {
+      if (error.config.url === '/auth/local/login') {
+        return Promise.reject(error);
+      }
+      
       window.dispatchEvent(new CustomEvent('auth-error-403-banned', { detail: error.response.data.data }));
     }
     return Promise.reject(error);

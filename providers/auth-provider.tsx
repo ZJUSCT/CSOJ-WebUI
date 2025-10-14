@@ -90,8 +90,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           description: `You have been banned. Reason: ${detail.ban_reason || 'No reason provided'}. Ban lifts on ${format(new Date(detail.banned_until), 'Pp')}`,
           duration: 15000,
       });
-      // Force reload to redirect to login page via withAuth HOC
-      window.location.reload();
+      window.location.href = '/login';
     };
 
     window.addEventListener('auth-error-403-banned', handleBanned);
