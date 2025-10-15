@@ -285,7 +285,7 @@
         "dragActive": "Drop files or a folder here...",
         "selectFilesButton": "Select Files",
         "selectFolderButton": "Select Folder",
-        "limits": "Max {maxNum, select, 0 {unlimited files} other {maxNum} files}, up to {maxSize, select, 0 {unlimited size} other {maxSize} MB total}.",
+        "limits": "Max {maxNum, select, 0 {unlimited files} other {{maxNum} files}}, up to {maxSize, select, 0 {unlimited size} other {{maxSize} MB total}}.",
         "tooManyFilesToast": {
           "title": "Too many files",
           "description": "You can upload a maximum of {maxNum} files."
