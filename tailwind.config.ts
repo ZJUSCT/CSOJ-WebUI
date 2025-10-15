@@ -21,10 +21,7 @@ const config = {
   		fontFamily: {
   			sans: [
   				'var(--font-sans)'
-  			],
-			mono: [
-				'var(--font-mono)'
-			]
+  			]
   		},
   		colors: {
   			border: 'hsl(var(--border))',
@@ -102,9 +99,6 @@ const config = {
 					'--tw-prose-body': {
 						lineHeight: theme('lineHeight.normal'),
 					},
-					'--tw-prose-pre-bg': 'transparent', 
-					'--tw-prose-pre-code': 'inherit',
-
 					p: {
 					'margin-top': theme('spacing.3'),
 					'margin-bottom': theme('spacing.3'),
@@ -132,23 +126,6 @@ const config = {
 					blockquote: {
 						'margin-top': theme('spacing.4'),
 						'margin-bottom': theme('spacing.4'),
-					},
-					// 行内代码样式
-					'code': {
-						backgroundColor: 'hsl(var(--muted))',
-						padding: '0.2em 0.4em',
-						borderRadius: '0.3rem',
-						fontWeight: '500',
-						fontFamily: theme('fontFamily.mono')?.join(', '),
-						borderWidth: '1px',
-						borderColor: 'hsl(var(--border))',
-					},
-					'code::before': { content: 'none' },
-					'code::after': { content: 'none' },
-					'pre code': {
-						backgroundColor: 'transparent',
-						borderWidth: '0',
-						padding: '0',
 					},
 				},
 			},

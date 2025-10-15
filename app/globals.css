@@ -33,8 +33,6 @@
     --ring: 222.2 84% 4.9%;
 
     --radius: 0.5rem;
-	
-	  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 
     --chart-1: 12 76% 61%;
 
@@ -83,18 +81,11 @@
   }
 }
 
-[data-rehype-pretty-code-figure] {
-  @apply relative my-6 overflow-hidden rounded-lg border;
+.prose pre {
+  white-space: pre-wrap;
+  word-wrap: break-word;
 }
 
-[data-rehype-pretty-code-figure] pre {
-  @apply p-4 overflow-x-auto text-[14px];
-}
-
-[data-rehype-pretty-code-title] {
-  @apply px-4 py-2 text-sm font-medium border-b text-muted-foreground bg-muted/50;
-}
-
-.line--highlighted {
-    @apply bg-primary/10;
+.prose code {
+  word-wrap: break-word;
 }

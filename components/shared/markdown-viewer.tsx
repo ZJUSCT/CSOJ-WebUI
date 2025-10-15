@@ -7,8 +7,6 @@ import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import rehypePrettyCode from 'rehype-pretty-code';
-import type { Options } from 'rehype-pretty-code';
 
 interface MarkdownViewerProps {
     content: string;
@@ -145,14 +143,6 @@ const AuthenticatedLink = ({ apiUrl, children, ...props }: { apiUrl: string; chi
     );
 };
 
-const rehypePrettyCodeOptions: Partial<Options> = {
-    theme: {
-      light: 'github-light',
-      dark: 'github-dark',
-    },
-    keepBackground: false,
-};
-
 // Main Markdown Viewer component
 export default function MarkdownViewer({ content, assetContext, assetContextId }: MarkdownViewerProps) {
     // This function transforms relative asset URLs into API paths
@@ -196,8 +186,7 @@ export default function MarkdownViewer({ content, assetContext, assetContextId }
     return (
         <div className={cn("prose prose-tight dark:prose-invert max-w-none", "leading-normal")}>
             <ReactMarkdown 
-            	remarkPlugins={[remarkGfm]}
-				rehypePlugins={[[rehypePrettyCode, rehypePrettyCodeOptions]]}
+                remarkPlugins={[remarkGfm]}
                 components={components}
                 urlTransform={transformUri}
             >
