@@ -12,7 +12,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
 import { zhCN, enUS, Locale } from "date-fns/locale";
 import { useLocale } from "next-intl";
-import { Calendar, Clock, BookOpen, Trophy, CheckCircle, Edit3, Loader2, Swords } from 'lucide-react';
+import { Calendar, Clock, BookOpen, Trophy, CheckCircle, Edit3, Loader2, Swords, CheckCheck } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import MarkdownViewer from '@/components/shared/markdown-viewer';
@@ -205,17 +205,33 @@ function ContestCard({ contest }: { contest: Contest }) {
                     <ContestTimeline contest={contest} />
                 </CardContent>
                 <CardFooter className="flex">
-                    {canRegister && (
+                    {hasEnded ? (
+                        <Button disabled className="ml-auto opacity-60 cursor-not-allowed">
+                            <CheckCheck className="mr-2 h-4 w-4" /> {t('status.finished')}
+                        </Button>
+                    ) : !hasStarted ? (
+                        <Button disabled className="ml-auto opacity-60 cursor-not-allowed">
+                            <Calendar className="mr-2 h-4 w-4" /> {t('status.upcoming')}
+                        </Button>
+                    ) : (
                         isRegistered ? (
                             <Button disabled className="ml-auto">
                                 <CheckCircle className="mr-2 h-4 w-4" /> {t('registered')}
                             </Button>
                         ) : (
-                            <Button onClick={(e) => {
-                                e.preventDefault();
-                                handleRegister(e);
-                            }} disabled={isLoadingRegistration} className="ml-auto">
-                                {isLoadingRegistration ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Edit3 className="mr-2 h-4 w-4" />}
+                            <Button
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    handleRegister(e);
+                                }}
+                                disabled={isLoadingRegistration}
+                                className="ml-auto"
+                            >
+                                {isLoadingRegistration ? (
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                ) : (
+                                    <Edit3 className="mr-2 h-4 w-4" />
+                                )}
                                 {isLoadingRegistration ? t('checking') : t('register')}
                             </Button>
                         )
