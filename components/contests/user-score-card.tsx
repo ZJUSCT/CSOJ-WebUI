@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import useSWR from "swr";
 import { useTranslations } from "next-intl";
 import api from "@/lib/api";
@@ -49,6 +49,28 @@ export default function UserScoreCard({ contestId }: { contestId: string }) {
   const isLoading = isContestLoading || isLeaderboardLoading || !user;
   const [open, setOpen] = React.useState(false);
 
+  // Correctly calculate user rank by respecting disable_rank
+  const { userRank, userEntry } = useMemo(() => {
+    if (!leaderboard || !user) {
+      return { userRank: 0, userEntry: null };
+    }
+
+    let visibleRank = 0;
+    for (const entry of leaderboard) {
+      if (!entry.disable_rank) {
+        visibleRank++;
+      }
+      if (entry.user_id === user.id) {
+        // If the user's own ranking is disabled, they are not ranked.
+        const rank = entry.disable_rank ? 0 : visibleRank;
+        return { userRank: rank, userEntry: entry };
+      }
+    }
+    
+    return { userRank: 0, userEntry: null };
+  }, [leaderboard, user]);
+
+
   if (isLoading) {
     return (
       <Card>
@@ -71,11 +93,6 @@ export default function UserScoreCard({ contestId }: { contestId: string }) {
   }
 
   if (!contest) return null;
-
-  const userEntry = leaderboard?.find((entry) => entry.user_id === user!.id);
-  const userRank = leaderboard
-    ? leaderboard.findIndex((entry) => entry.user_id === user!.id) + 1
-    : 0;
 
   return (
     <Card>
