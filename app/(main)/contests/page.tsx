@@ -432,7 +432,9 @@ function ContestLeaderboard({ contestId }: { contestId: string }) {
 
     const problemIds = contest.problem_ids;
 
-    let visibleRank = 0;
+    let rankToDisplay = 0;
+    let realRankCounter = 0;
+    let previousScore = -Infinity; // Use a value that is guaranteed to be less than any possible score
 
     return (
         <Card>
@@ -458,10 +460,17 @@ function ContestLeaderboard({ contestId }: { contestId: string }) {
                     <TableBody>
                         {leaderboard.map((entry) => {
                             const isRankDisabled = entry.disable_rank;
+                            let displayRank: number | string = '-';
+
                             if (!isRankDisabled) {
-                                visibleRank++;
+                                realRankCounter++;
+                                // Update rank only when the score is different from the previous entry's score
+                                if (entry.total_score !== previousScore) {
+                                    rankToDisplay = realRankCounter;
+                                }
+                                displayRank = rankToDisplay;
+                                previousScore = entry.total_score;
                             }
-                            const displayRank = isRankDisabled ? '-' : visibleRank;
 
                             return (
                                 <LeaderboardRow 

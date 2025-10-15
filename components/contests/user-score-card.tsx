@@ -49,25 +49,40 @@ export default function UserScoreCard({ contestId }: { contestId: string }) {
   const isLoading = isContestLoading || isLeaderboardLoading || !user;
   const [open, setOpen] = React.useState(false);
 
-  // Correctly calculate user rank by respecting disable_rank
+  // Correctly calculate user rank by respecting disable_rank and ties
   const { userRank, userEntry } = useMemo(() => {
     if (!leaderboard || !user) {
       return { userRank: 0, userEntry: null };
     }
 
-    let visibleRank = 0;
+    const foundUserEntry = leaderboard.find(e => e.user_id === user.id) || null;
+
+    // If the user isn't on the board or their rank is disabled, they have no rank.
+    if (!foundUserEntry || foundUserEntry.disable_rank) {
+      return { userRank: 0, userEntry: foundUserEntry };
+    }
+
+    let rankToDisplay = 0;
+    let realRankCounter = 0;
+    let previousScore = -Infinity; // Use a value guaranteed to be less than any score
+
+    // Iterate through the sorted leaderboard to determine rank
     for (const entry of leaderboard) {
       if (!entry.disable_rank) {
-        visibleRank++;
-      }
-      if (entry.user_id === user.id) {
-        // If the user's own ranking is disabled, they are not ranked.
-        const rank = entry.disable_rank ? 0 : visibleRank;
-        return { userRank: rank, userEntry: entry };
+        realRankCounter++;
+        if (entry.total_score !== previousScore) {
+          rankToDisplay = realRankCounter; // New rank for a new score
+        }
+        previousScore = entry.total_score;
+
+        // When we find our user, we have their rank
+        if (entry.user_id === user.id) {
+          return { userRank: rankToDisplay, userEntry: foundUserEntry };
+        }
       }
     }
     
-    return { userRank: 0, userEntry: null };
+    return { userRank: 0, userEntry: foundUserEntry }; // Fallback, should not be reached if user is ranked
   }, [leaderboard, user]);
 
 
