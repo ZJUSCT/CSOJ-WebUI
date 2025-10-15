@@ -32,6 +32,11 @@ export interface WorkflowStep {
   show: boolean;
 }
 
+export interface ScoreConfig {
+  max_performance_score: number;
+  mode: string;
+}
+
 export interface Problem {
     id: string;
     name: string;
@@ -72,6 +77,7 @@ export interface ProblemForSubmission {
   id: string;
   name: string;
   workflow: WorkflowStep[];
+  score: ScoreConfig;
 }
 
 export interface Submission {

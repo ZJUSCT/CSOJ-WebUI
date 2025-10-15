@@ -269,11 +269,13 @@ function SubmissionDetails({ submissionId }: { submissionId: string }) {
                             }</p>
                             </div>
                         )}
-                        <div className="flex items-center justify-between">
-                            <span className="text-muted-foreground flex items-center gap-2"><Tag className="h-4 w-4"/>{t('details.info.score')}</span>
-                            <span className="font-mono text-lg">{submission.score}</span>
-                        </div>
-                        {submission.performance !== 0 && (
+                        {!(submission.problem?.score == null && submission.problem?.score == "performance") && (
+                          <div className="flex items-center justify-between">
+                              <span className="text-muted-foreground flex items-center gap-2"><Tag className="h-4 w-4"/>{t('details.info.score')}</span>
+                              <span className="font-mono text-lg">{submission.score}</span>
+                          </div>
+                        )}
+                        {submission.problem?.score == null && submission.problem?.score == "performance" && (
                           <div className="flex items-center justify-between">
                             <span className="text-muted-foreground flex items-center gap-2">
                               <Rocket className="h-4 w-4" />
