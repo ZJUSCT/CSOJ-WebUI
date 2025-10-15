@@ -12,7 +12,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
 import { zhCN, enUS, Locale } from "date-fns/locale";
 import { useLocale } from "next-intl";
-import { Calendar, Clock, BookOpen, Trophy, CheckCircle, Edit3, Loader2 } from 'lucide-react';
+import { Calendar, Clock, BookOpen, Trophy, CheckCircle, Edit3, Loader2, Swords } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import MarkdownViewer from '@/components/shared/markdown-viewer';
@@ -26,6 +26,7 @@ import { AnnouncementsCard } from '@/components/contests/announcements-card';
 import { DifficultyBadge } from '@/components/contests/difficulty-badge';
 import UserScoreCard from '@/components/contests/user-score-card';
 import { Search, List } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 const fetcher = (url: string) => api.get(url).then(res => res.data.data);
 
@@ -267,8 +268,20 @@ function ProblemCard({ problemId, index }: { problemId: string; index: number })
                         <BookOpen className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-xs text-muted-foreground mb-4">{t('problemCard.id')}: {problemId}</div>
-                        <DifficultyBadge level={problem?.level || ""} />
+                        <div className="flex items-center gap-2 mt-2">
+                            {problem?.score?.mode === 'performance' && (
+                                <Badge
+                                    variant="flat"
+                                    className="inline-flex items-center gap-2 rounded-full bg-gray-100 dark:bg-zinc-700 text-gray-800 dark:text-gray-200 px-3 py-1 text-sm font-medium select-none"
+                                >
+                                    <Swords className="w-3 h-3" />
+                                    {t('problemCard.performance')}
+                                </Badge>
+                            )}
+
+                            <DifficultyBadge level={problem?.level || ""} />
+                        </div>
+
                     </CardContent>
                 </div>
 

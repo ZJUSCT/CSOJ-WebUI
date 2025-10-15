@@ -49,6 +49,10 @@ export interface Problem {
         editor?: boolean;
         editor_files?: string[];
     };
+    score: {
+      max_performance_score: number;
+      mode: string;
+    }
     workflow: WorkflowStep[];
     description: string;
 }

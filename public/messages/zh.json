@@ -58,7 +58,7 @@
     },
     "problemCard": {
       "id": "题目编号",
-      "view": "查看题目"
+      "performance": "打榜"
     },
     "trend": {
       "title": "分数趋势",
@@ -342,10 +342,10 @@
     }
   },
   "difficulty": {
-    "platinum": "铂",
-    "gold": "金",
-    "silver": "银",
-    "bronze": "铜",
+    "platinum": "Platinum",
+    "gold": "Gold",
+    "silver": "Silver",
+    "bronze": "Bronze",
     "hard": "困难",
     "medium": "中等",
     "easy": "简单"

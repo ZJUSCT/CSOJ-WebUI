@@ -58,7 +58,7 @@
     },
     "problemCard": {
       "id": "Problem",
-      "view": "View Problem"
+      "performance": "Rank"
     },
     "trend": {
       "title": "Score Trend",

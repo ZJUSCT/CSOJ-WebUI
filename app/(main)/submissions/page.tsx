@@ -255,7 +255,6 @@ function SubmissionDetails({ submissionId }: { submissionId: string }) {
                             <div>
                                 <Progress value={progress} className="w-full" />
                                 <p className="text-xs text-muted-foreground mt-1">{
-                                // Safely access problem workflow name
                                 problem?.workflow[submission.current_step]?.name ? 
                                 t('details.info.stepProgress', {
                                     current: submission.current_step + 1,
