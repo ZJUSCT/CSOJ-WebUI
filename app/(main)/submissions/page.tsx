@@ -13,7 +13,7 @@ import { useLocale } from "next-intl";
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 import { SubmissionLogViewer } from '@/components/submissions/submission-log-viewer';
-import { Clock, Code, Hash, Layers, Loader2, Server, Tag, User, XCircle, Bookmark } from 'lucide-react';
+import { Clock, Code, Hash, Layers, Loader2, Server, Tag, User, XCircle, Bookmark, Rocket } from 'lucide-react';
 import { Progress } from "@/components/ui/progress";
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -274,6 +274,15 @@ function SubmissionDetails({ submissionId }: { submissionId: string }) {
                             <span className="text-muted-foreground flex items-center gap-2"><Tag className="h-4 w-4"/>{t('details.info.score')}</span>
                             <span className="font-mono text-lg">{submission.score}</span>
                         </div>
+                        {submission.performance !== 0 && (
+                          <div className="flex items-center justify-between">
+                            <span className="text-muted-foreground flex items-center gap-2">
+                              <Rocket className="h-4 w-4" />
+                                {t('details.info.performance')}
+                            </span>
+                            <span className="font-mono text-lg ">{submission.performance?.toFixed(2)}</span>
+                          </div>
+                        )}
                         <div className="flex items-center justify-between">
                             <span className="text-muted-foreground flex items-center gap-2"><Clock className="h-4 w-4"/>{t('details.info.submitted')}</span>
                             <span>{formatDistanceToNow(new Date(submission.CreatedAt), { addSuffix: true, locale: locales[locale] || enUS })}</span>

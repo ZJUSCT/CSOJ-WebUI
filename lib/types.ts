@@ -82,6 +82,7 @@ export interface Submission {
   cluster: string;
   node: string;
   score: number;
+  performance: number;
   info: { [key: string]: any };
   is_valid: boolean;
   problem?: ProblemForSubmission;

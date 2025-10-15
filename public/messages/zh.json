@@ -237,13 +237,14 @@
         "title": "提交信息",
         "status": "状态",
         "score": "得分",
+        "performance": "性能分",
         "submitted": "提交时间",
         "problem": "题目",
         "user": "用户",
         "cluster": "测评集群",
         "node": "节点",
-        "stepProgress": "第 {{current}} 步 / 共 {{total}} 步：{{name}}",
-        "stepProgressNoName": "第 {{current}} 步 / 共 {{total}} 步"
+        "stepProgress": "第 {current} 步 / 共 {total} 步：{name}",
+        "stepProgressNoName": "第 {current} 步 / 共 {total} 步"
       },
       "judgeInfo": {
         "title": "测评信息",
@@ -251,7 +252,7 @@
       },
       "queue": {
         "position": "队列位置",
-        "info": "在 {{cluster}} 队列中排第 {{position}} 位"
+        "info": "在 {cluster} 队列中排第 {position} 位"
       },
       "interrupt": {
         "button": "中断提交",
@@ -284,7 +285,7 @@
         "dragActive": "释放文件或文件夹...",
         "selectFilesButton": "选择文件",
         "selectFolderButton": "选择文件夹",
-        "limits": "最多 {maxNum, select, 0 {不限文件数量} other {{maxNum} 个文件}}，总大小不超过 {maxSize, select, 0 {不限} other {{maxSize} MB}}。",
+        "limits": "最多 {maxNum, select, 0 {不限文件数量} other {maxNum} 个文件}，总大小不超过 {maxSize, select, 0 {不限} other {maxSize} MB}。",
         "tooManyFilesToast": {
           "title": "文件过多",
           "description": "您最多可以上传 {maxNum} 个文件"

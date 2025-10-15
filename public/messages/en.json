@@ -237,13 +237,14 @@
         "title": "Submission Info",
         "status": "Status",
         "score": "Score",
+        "performance": "Performance Score",
         "submitted": "Submitted",
         "problem": "Problem",
         "user": "User",
         "cluster": "Cluster",
         "node": "Node",
-        "stepProgress": "Step {{current}} of {{total}}: {{name}}",
-        "stepProgressNoName": "Step {{current}} of {{total}}"
+        "stepProgress": "Step {current} of {total}: {name}",
+        "stepProgressNoName": "Step {current} of {total}"
       },
       "judgeInfo": {
         "title": "Judge Info",
@@ -251,7 +252,7 @@
       },
       "queue": {
         "position": "Queue Position",
-        "info": "#{{position}} in {{cluster}} queue"
+        "info": "#{position} in {cluster} queue"
       },
       "interrupt": {
         "button": "Interrupt",
@@ -284,7 +285,7 @@
         "dragActive": "Drop files or a folder here...",
         "selectFilesButton": "Select Files",
         "selectFolderButton": "Select Folder",
-        "limits": "Max {maxNum, select, 0 {unlimited files} other {{maxNum} files}}, up to {maxSize, select, 0 {unlimited size} other {{maxSize} MB total}}.",
+        "limits": "Max {maxNum, select, 0 {unlimited files} other {maxNum} files}, up to {maxSize, select, 0 {unlimited size} other {maxSize} MB total}.",
         "tooManyFilesToast": {
           "title": "Too many files",
           "description": "You can upload a maximum of {maxNum} files."
