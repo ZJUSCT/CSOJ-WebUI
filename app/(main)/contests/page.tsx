@@ -20,7 +20,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import { UserProfileCard } from '@/components/shared/user-profile-card';
-import { getInitials } from '@/lib/utils';
+import { getInitials, cn } from '@/lib/utils';
 import EchartsTrendChart from '@/components/charts/echarts-trend-chart';
 import { AnnouncementsCard } from '@/components/contests/announcements-card';
 import { DifficultyBadge } from '@/components/contests/difficulty-badge';
@@ -376,9 +376,9 @@ function ContestTrend({ contest }: { contest: Contest }) {
 }
 
 
-function LeaderboardRow({ entry, rank, problemIds }: { entry: LeaderboardEntry, rank: number, problemIds: string[] }) {
+function LeaderboardRow({ entry, rank, problemIds, isRankDisabled }: { entry: LeaderboardEntry, rank: number | string, problemIds: string[], isRankDisabled: boolean }) {
     // No translation needed for LeaderboardRow itself
-    const getRankColor = (rank: number) => {
+    const getRankColor = (rank: number | string) => {
         if (rank === 1) return 'text-yellow-400';
         if (rank === 2) return 'text-gray-400';
         if (rank === 3) return 'text-yellow-600';
@@ -386,10 +386,10 @@ function LeaderboardRow({ entry, rank, problemIds }: { entry: LeaderboardEntry, 
     };
 
     return (
-        <TableRow key={entry.user_id}>
+        <TableRow key={entry.user_id} className={cn(isRankDisabled && "text-muted-foreground")}>
             <TableCell className={`font-medium text-lg ${getRankColor(rank)}`}>
                 <div className="flex items-center gap-2">
-                    {rank <= 3 && <Trophy className="h-5 w-5" />}
+                    {typeof rank === 'number' && rank <= 3 && <Trophy className="h-5 w-5" />}
                     {rank}
                 </div>
             </TableCell>
@@ -432,6 +432,8 @@ function ContestLeaderboard({ contestId }: { contestId: string }) {
 
     const problemIds = contest.problem_ids;
 
+    let visibleRank = 0;
+
     return (
         <Card>
             <CardHeader>
@@ -454,9 +456,22 @@ function ContestLeaderboard({ contestId }: { contestId: string }) {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {leaderboard.map((entry, index) => (
-                            <LeaderboardRow key={entry.user_id} entry={entry} rank={index + 1} problemIds={problemIds} />
-                        ))}
+                        {leaderboard.map((entry) => {
+                            const isRankDisabled = entry.disable_rank;
+                            if (!isRankDisabled) {
+                                visibleRank++;
+                            }
+                            const displayRank = isRankDisabled ? '-' : visibleRank;
+
+                            return (
+                                <LeaderboardRow 
+                                    key={entry.user_id} 
+                                    entry={entry} 
+                                    rank={displayRank} 
+                                    problemIds={problemIds}
+                                    isRankDisabled={isRankDisabled} />
+                            );
+                        })}
                     </TableBody>
                 </Table>
             </CardContent>
