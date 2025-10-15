@@ -22,6 +22,7 @@ function UserSubmissionsForProblem({ problemId }: { problemId: string }) {
     const router = useRouter();
     const t = useTranslations('ProblemDetails');
     const { data: allSubmissions, isLoading } = useSWR<Submission[]>('/submissions', fetcher);
+    const { data: problem } = useSWR<Problem>(`/problems/${problemId}`, fetcher);
 
     if (isLoading) return <Skeleton className="h-40 w-full" />;
     
@@ -36,7 +37,8 @@ function UserSubmissionsForProblem({ problemId }: { problemId: string }) {
             <TableHeader>
                 <TableRow>
                     <TableHead>{t('submissions.status')}</TableHead>
-                    <TableHead>{t('submissions.score')}</TableHead>
+                    {problem?.score.mode != "performance" && (<TableHead>{t('submissions.score')}</TableHead>)}
+                    {problem?.score.mode != "score" && (<TableHead>{t('submissions.performance')}</TableHead>)}
                     <TableHead>{t('submissions.date')}</TableHead>
                     <TableHead className="text-right">{t('submissions.id')}</TableHead>
                 </TableRow>
@@ -48,7 +50,7 @@ function UserSubmissionsForProblem({ problemId }: { problemId: string }) {
                         onClick={() => router.push(`/submissions?id=${sub.id}`)}
                     >
                         <TableCell><SubmissionStatusBadge status={sub.status} /></TableCell>
-                        <TableCell>
+                        {problem?.score.mode != "performance" && (<TableCell>
                             <span
                                 className="font-bold font-mono"
                                 style={{
@@ -57,7 +59,17 @@ function UserSubmissionsForProblem({ problemId }: { problemId: string }) {
                             >
                                 {sub.score}
                             </span>
-                        </TableCell>
+                        </TableCell>)}
+                        {problem?.score.mode != "score" && (<TableCell>
+                            <span
+                                className="font-bold font-mono"
+                                style={{
+                                color: getScoreColor(sub.performance ?? 0),
+                                }}
+                            >
+                                {sub.performance.toFixed(2)}
+                            </span>
+                        </TableCell>)}
                         <TableCell>{format(new Date(sub.CreatedAt), "MM/dd HH:mm:ss")}</TableCell>
                         <TableCell className="text-right font-mono text-sm text-muted-foreground">
                             <div className="flex items-center justify-end space-x-2">

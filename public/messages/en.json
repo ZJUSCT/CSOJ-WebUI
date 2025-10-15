@@ -115,6 +115,7 @@
       "id": "Submission ID",
       "status": "Status",
       "score": "Score",
+      "performance": "Performance",
       "date": "Date"
     }
   },
@@ -222,6 +223,7 @@
         "problemId": "Problem",
         "status": "Status",
         "score": "Score",
+        "performance": "Performance",
         "node": "Node",
         "submittedAt": "Submitted At"
       }

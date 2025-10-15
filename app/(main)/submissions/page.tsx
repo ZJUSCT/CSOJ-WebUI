@@ -77,6 +77,12 @@ function MySubmissionsList() {
                 </TableHead>
                 <TableHead>
                 <div className="flex items-center gap-2">
+                    <Tag className="h-4 w-4" />
+                    {t('list.table.performance')}
+                </div>
+                </TableHead>
+                <TableHead>
+                <div className="flex items-center gap-2">
                     <Code className="h-4 w-4" />
                     {t('list.table.problemId')}
                 </div>
@@ -121,7 +127,14 @@ function MySubmissionsList() {
                         color: getScoreColor(sub.score ?? 0),
                       }}
                     >
-                      {sub.score}
+                      {sub.score != 0 ? sub.score : "-"}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <span
+                      className="font-bold font-mono"
+                    >
+                      {sub.performance != 0 ? sub.performance.toFixed(2) : "-"}
                     </span>
                   </TableCell>
                   <TableCell>
@@ -269,13 +282,13 @@ function SubmissionDetails({ submissionId }: { submissionId: string }) {
                             }</p>
                             </div>
                         )}
-                        {!(submission.problem?.score != null && submission.problem?.score.mode != "performance") && (
+                        {problem?.score.mode != "performance" && (
                           <div className="flex items-center justify-between">
                               <span className="text-muted-foreground flex items-center gap-2"><Tag className="h-4 w-4"/>{t('details.info.score')}</span>
                               <span className="font-mono text-lg">{submission.score}</span>
                           </div>
                         )}
-                        {submission.problem?.score != null && submission.problem?.score.mode != "performance" && (
+                        {problem?.score.mode != "score" && (
                           <div className="flex items-center justify-between">
                             <span className="text-muted-foreground flex items-center gap-2">
                               <Rocket className="h-4 w-4" />

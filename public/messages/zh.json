@@ -115,6 +115,7 @@
       "id": "提交编号",
       "status": "状态",
       "score": "得分",
+      "performance": "性能分",
       "date": "提交时间"
     }
   },
@@ -222,6 +223,7 @@
         "problemId": "题目",
         "status": "状态",
         "score": "得分",
+        "performance": "性能分",
         "node": "测评节点",
         "submittedAt": "提交时间"
       }
