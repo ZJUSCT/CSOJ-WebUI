@@ -183,13 +183,17 @@ function SubmissionDetails({ submissionId }: { submissionId: string }) {
     };
     const t = useTranslations('submissions');
     const { toast } = useToast();
-    const { data: submission, error, isLoading, mutate } = useSWR<Submission>(`/submissions/${submissionId}`, fetcher, {
+    const { data: submission, error: submissionError, isLoading: isSubmissionLoading, mutate } = useSWR<Submission>(`/submissions/${submissionId}`, fetcher, {
         refreshInterval: (data) => (data?.status === 'Queued' || data?.status === 'Running' ? 2000 : 0),
     });
+    
+    // Fetch problem data, but do not throw an error if it fails.
+    // The `problem` variable will be `undefined` on 404, which is what we want.
     const { data: problem } = useSWR<Problem>(submission ? `/problems/${submission.problem_id}` : null, fetcher);
 
-    if (isLoading) return <SubmissionDetailsSkeleton />;
-    if (error) return <div>{t('details.loadFail')}</div>;
+    if (isSubmissionLoading) return <SubmissionDetailsSkeleton />;
+    // Only show error if the submission itself fails to load
+    if (submissionError) return <div>{t('details.loadFail')}</div>;
     if (!submission) return <div>{t('details.notFound')}</div>;
 
     const markdownInfo = submission.info?.markdown;
@@ -198,7 +202,8 @@ function SubmissionDetails({ submissionId }: { submissionId: string }) {
       delete remainingInfo.markdown;
     }
 
-    const totalSteps = problem?.workflow.length ?? 0;
+    // Use problem workflow length if available, otherwise fallback to container count
+    const totalSteps = problem?.workflow.length ?? submission.containers.length ?? 0;
     const progress = totalSteps > 0 ? ((submission.current_step + 1) / totalSteps) * 100 : 0;
     const canBeInterrupted = submission.status === 'Queued' || submission.status === 'Running';
 
@@ -222,7 +227,7 @@ function SubmissionDetails({ submissionId }: { submissionId: string }) {
                         <CardDescription>{t('details.log.description')}</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        {problem && submission ? <SubmissionLogViewer submission={submission} problem={problem} onStatusUpdate={mutate} /> : <Skeleton className="h-[60vh] w-full" />}
+                        <SubmissionLogViewer submission={submission} problem={problem} onStatusUpdate={mutate} />
                     </CardContent>
                 </Card>
             </div>
@@ -250,11 +255,12 @@ function SubmissionDetails({ submissionId }: { submissionId: string }) {
                             <div>
                                 <Progress value={progress} className="w-full" />
                                 <p className="text-xs text-muted-foreground mt-1">{
+                                // Safely access problem workflow name
                                 problem?.workflow[submission.current_step]?.name ? 
                                 t('details.info.stepProgress', {
                                     current: submission.current_step + 1,
                                     total: totalSteps,
-                                    name: problem?.workflow[submission.current_step]?.name
+                                    name: problem.workflow[submission.current_step].name
                                 })
                                 :
                                 t('details.info.stepProgressNoName', {

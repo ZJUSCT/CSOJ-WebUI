@@ -64,6 +64,12 @@ export interface Container {
   log_file_path: string;
 }
 
+export interface ProblemForSubmission {
+  id: string;
+  name: string;
+  workflow: WorkflowStep[];
+}
+
 export interface Submission {
   id: string;
   CreatedAt: string;
@@ -78,6 +84,7 @@ export interface Submission {
   score: number;
   info: { [key: string]: any };
   is_valid: boolean;
+  problem?: ProblemForSubmission;
   containers: Container[];
 }
 

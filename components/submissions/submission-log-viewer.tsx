@@ -149,7 +149,7 @@ const RealtimeLogViewer = ({ wsUrl, onStatusUpdate }: { wsUrl: string | null, on
 // --- Main Orchestrator Component ---
 interface SubmissionLogViewerProps {
     submission: Submission;
-    problem: Problem;
+    problem?: Problem; // Make problem optional
     onStatusUpdate: () => void;
 }
 
@@ -157,6 +157,15 @@ export function SubmissionLogViewer({ submission, problem, onStatusUpdate }: Sub
     const t = useTranslations('submissions.logViewer.mainViewer');
     const { token } = useAuth();
     const [selectedContainerId, setSelectedContainerId] = useState<string | null>(null);
+
+    // If problem info is available, use its workflow. Otherwise, create a default workflow
+    // based on the number of containers, assuming all logs are visible.
+    const workflow = useMemo(() => 
+        problem?.workflow ?? submission.containers.map((_, index) => ({
+            name: `Step ${index + 1}`,
+            show: true,
+        })),
+    [problem, submission.containers]);
 
     useEffect(() => {
         // Automatically select the last container, which is usually the active or most recent one.
@@ -182,7 +191,7 @@ export function SubmissionLogViewer({ submission, problem, onStatusUpdate }: Sub
         if (!token || !containerId || typeof window === 'undefined') return null;
         
         const containerIndex = submission.containers.findIndex(c => c.id === containerId);
-        if (containerIndex === -1 || !problem.workflow[containerIndex]?.show) {
+        if (containerIndex === -1 || !workflow[containerIndex]?.show) {
             return null;
         }
 
@@ -198,15 +207,15 @@ export function SubmissionLogViewer({ submission, problem, onStatusUpdate }: Sub
                     <TabsTrigger 
                         key={container.id} 
                         value={container.id} 
-                        disabled={!problem.workflow[index]?.show}
+                        disabled={!workflow[index]?.show}
                     >
-                        {t('tabLabel', { step: index + 1, name: problem.workflow[index]?.name || '' }) + (problem.workflow[index]?.show ? '' : t('tabHidden'))}
+                        {t('tabLabel', { step: index + 1, name: workflow[index]?.name || '' }) + (workflow[index]?.show ? '' : t('tabHidden'))}
                     </TabsTrigger>
                 ))}
             </TabsList>
             {submission.containers.map((container, index) => {
                 const isRunning = container.status === 'Running';
-                const canShow = problem.workflow[index]?.show;
+                const canShow = workflow[index]?.show;
 
                 return (
                     <TabsContent key={container.id} value={container.id} className="mt-4">
