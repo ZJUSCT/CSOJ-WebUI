@@ -92,7 +92,8 @@
       "scoreBreakdown": "Score Breakdown",
       "problem": "Problem",
       "score": "Score",
-      "notRanked": "You are not ranked yet. Make a submission to appear on the leaderboard."
+      "notRanked": "You are not ranked yet. Make a submission to appear on the leaderboard.",
+      "rankDisabled": "Rank Disabled"
      }
   },
   "ProblemDetails": {

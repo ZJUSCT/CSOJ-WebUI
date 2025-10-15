@@ -9,7 +9,6 @@ import { useAuth } from "@/hooks/use-auth";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -22,7 +21,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Trophy, Star, ChevronDown } from "lucide-react";
+import { Trophy, Star, ChevronDown, EyeOff } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { getScoreColor } from "@/lib/utils";
@@ -119,14 +118,20 @@ export default function UserScoreCard({ contestId }: { contestId: string }) {
       </CardHeader>
 
       <CardContent>
-        {userEntry && userRank > 0 ? (
+        {userEntry ? (
           <div className="space-y-4">
             <div className="flex justify-between items-center pb-2 border-b">
               <div className="flex flex-col">
                 <span className="text-sm text-muted-foreground font-bold mb-1">{t("rank")}</span>
-                <span className="text-2xl font-bold flex items-center gap-3">
-                  <Trophy className="text-yellow-500" /> #{userRank}
-                </span>
+                {userRank > 0 ? (
+                    <span className="text-2xl font-bold flex items-center gap-3">
+                        <Trophy className="text-yellow-500" /> #{userRank}
+                    </span>
+                ) : (
+                    <span className="text-lg font-medium text-muted-foreground flex items-center gap-2">
+                        <EyeOff className="h-5 w-5" /> {t('rankDisabled')}
+                    </span>
+                )}
               </div>
 
               <div className="flex flex-col items-end">
