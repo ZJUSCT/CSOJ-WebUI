@@ -124,10 +124,10 @@ function MySubmissionsList() {
                     <span
                       className="font-bold font-mono"
                       style={{
-                        color: getScoreColor(sub.score ?? 0),
+                        color: sub.status === "Success" ? getScoreColor(sub.score ?? 0) : "",
                       }}
                     >
-                      {sub.score != 0 ? sub.score : "-"}
+                      {sub.status === "Success" ? sub.score : "-"}
                     </span>
                   </TableCell>
                   <TableCell>

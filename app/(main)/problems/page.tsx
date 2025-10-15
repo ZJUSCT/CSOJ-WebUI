@@ -54,20 +54,15 @@ function UserSubmissionsForProblem({ problemId }: { problemId: string }) {
                             <span
                                 className="font-bold font-mono"
                                 style={{
-                                color: getScoreColor(sub.score ?? 0),
+                                    color: sub.status === "Success" ? getScoreColor(sub.score ?? 0) : "",
                                 }}
                             >
-                                {sub.score}
+                                {sub.status === "Success" ? sub.score : "-"}
                             </span>
                         </TableCell>)}
                         {problem?.score.mode != "score" && (<TableCell>
-                            <span
-                                className="font-bold font-mono"
-                                style={{
-                                color: getScoreColor(sub.performance ?? 0),
-                                }}
-                            >
-                                {sub.performance.toFixed(2)}
+                            <span className="font-bold font-mono">
+                                {sub.status === "Success" ? sub.performance.toFixed(2) : "-"}
                             </span>
                         </TableCell>)}
                         <TableCell>{format(new Date(sub.CreatedAt), "MM/dd HH:mm:ss")}</TableCell>
