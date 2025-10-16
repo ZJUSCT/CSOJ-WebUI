@@ -1,5 +1,7 @@
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import remarkMath from 'remark-math';
+import rehypeMathjax from 'rehype-mathjax';
 import { useState, useEffect } from 'react';
 import api from '@/lib/api';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -186,7 +188,8 @@ export default function MarkdownViewer({ content, assetContext, assetContextId }
     return (
         <div className={cn("prose prose-tight dark:prose-invert max-w-none", "leading-normal")}>
             <ReactMarkdown 
-                remarkPlugins={[remarkGfm]}
+                remarkPlugins={[remarkGfm, remarkMath]}
+                rehypePlugins={[rehypeMathjax]}
                 components={components}
                 urlTransform={transformUri}
             >
