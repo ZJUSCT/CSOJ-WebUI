@@ -8,3 +8,4 @@ The official web frontend for the CSOJ (Containerized Secure Online Judge) proje
 
 - [ZJUSCT/CSOJ](https://github.com/ZJUSCT/CSOJ)
 - [ZJUSCT/CSOJ-AdminPanel](https://github.com/ZJUSCT/CSOJ-AdminPanel)
+- [ZJUSCT/CSOJ-cli](https://github.com/ZJUSCT/CSOJ-cli)
