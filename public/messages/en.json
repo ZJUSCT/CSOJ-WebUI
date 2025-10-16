@@ -58,7 +58,7 @@
     },
     "problemCard": {
       "id": "Problem",
-      "performance": "Rank"
+      "performance": "Ranking"
     },
     "trend": {
       "title": "Score Trend",
@@ -117,6 +117,20 @@
       "score": "Score",
       "performance": "Performance",
       "date": "Date"
+    },
+    "meta": {
+      "core": "Cores",
+      "cluster": "Cluster",
+      "performance": "Ranking",
+      "maxCore": "Max Core Limit",
+      "maxMemory": "Max Memory Limit",
+      "maxScore": "Max Score",
+      "score": "pts",
+      "mode": "Mode",
+      "performanceDialog": {
+        "title": "About Ranking Mode",
+        "description": "In Ranking Mode, the score for each problem is dynamically calculated based on the performance of the participant's program. Each participant's performance score is compared in real time with others: the best-performing participant receives full points, and the rest are awarded proportionally."
+      }
     }
   },
   "Profile": {

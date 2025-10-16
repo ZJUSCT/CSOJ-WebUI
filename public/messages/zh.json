@@ -117,6 +117,20 @@
       "score": "得分",
       "performance": "性能分",
       "date": "提交时间"
+    },
+    "meta": {
+      "core": "核",
+      "cluster": "测评集群",
+      "performance": "打榜",
+      "maxCore": "核心限制",
+      "maxMemory": "内存限制",
+      "maxScore": "最高得分",
+      "score": "分",
+      "mode": "赛题模式",
+      "performanceDialog": {
+        "title": "关于打榜模式",
+        "description": "打榜模式的题目会根据选手程序性能动态计算得分，每个选手的性能分会与他人进行实时对比，性能最佳的选手获得满分，其余选手的分数按比例分配。"
+      }
     }
   },
   "Profile": {
