@@ -202,7 +202,7 @@ export function SubmissionLogViewer({ submission, problem, onStatusUpdate }: Sub
 
     return (
         <Tabs value={selectedContainerId ?? ""} onValueChange={setSelectedContainerId} className="w-full">
-            <TabsList className="grid w-full" style={{gridTemplateColumns: `repeat(${submission.containers.length}, minmax(0, 1fr))`}}>
+            <TabsList className="grid h-auto w-full gap-1" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))' }}>
                 {submission.containers.map((container, index) => (
                     <TabsTrigger 
                         key={container.id} 
