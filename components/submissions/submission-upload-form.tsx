@@ -240,7 +240,7 @@ export default function SubmissionUploadForm({ problemId, uploadLimits }: Submis
     const renderEditor = () => (
         <div className="space-y-4">
             <Tabs value={activeEditorFile} onValueChange={setActiveEditorFile} className="w-full">
-                <TabsList className="grid h-auto w-full gap-1" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))' }}>
+                <TabsList className="grid h-auto w-full gap-1" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
                     {editorFiles.map(filename => (
                         <TabsTrigger key={filename} value={filename}>{filename}</TabsTrigger>
                     ))}
