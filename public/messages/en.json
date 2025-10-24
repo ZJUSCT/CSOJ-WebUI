@@ -73,7 +73,9 @@
       "totalScore": "Total Score",
       "loadFail": "Failed to load leaderboard data.",
       "none": "No scores recorded yet.",
-      "contestDetailsFail": "Could not load contest details for leaderboard header."
+      "contestDetailsFail": "Could not load contest details for leaderboard header.",
+      "filterTags": "Filter by Tags",
+      "noTags": "No tags found on leaderboard."
     },
     "tabs": {
       "problems": "Problems",
@@ -151,6 +153,8 @@
       "nicknamePlaceholder": "Your display name",
       "signature": "Signature",
       "signaturePlaceholder": "A short bio",
+      "tags": "Tags",
+      "noTags": "No tags assigned.",
       "saving": "Saving...",
       "saveChanges": "Save Changes",
       "updateSuccess": "Profile updated successfully!",

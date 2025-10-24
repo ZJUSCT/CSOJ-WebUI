@@ -16,6 +16,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { TokenInfoCard } from '@/components/profile/token-info-card';
 import { useTranslations } from 'next-intl'; // Import useTranslations
+import { Badge } from '@/components/ui/badge';
 
 export default function ProfilePage() {
     const t = useTranslations('Profile'); // Initialize translations
@@ -24,7 +25,7 @@ export default function ProfilePage() {
     const router = useRouter();
     const [isUploading, setIsUploading] = useState(false);
 
-    // Schema definition must be inside the component or outside, but using t() inside requires it to be inside 
+    // Schema definition must be inside the component or outside, but using t() inside requires it to be inside
     // or passed as a function argument, let's redefine it here to use t() for error messages.
     const profileSchema = z.object({
         nickname: z.string().min(1, t('form.nicknameRequired')).max(15),
@@ -53,7 +54,7 @@ export default function ProfilePage() {
             });
             toast({ title: t('avatar.uploadSuccess') });
             // Forcing a reload to get the new user profile with updated avatar URL
-            window.location.reload(); 
+            window.location.reload();
         } catch (error: any) {
             toast({
                 variant: 'destructive',
@@ -64,7 +65,7 @@ export default function ProfilePage() {
             setIsUploading(false);
         }
     };
-    
+
     const onSubmit = async (values: z.infer<typeof profileSchema>) => {
         try {
             await api.patch('/user/profile', values);
@@ -148,6 +149,16 @@ export default function ProfilePage() {
                                     </FormItem>
                                 )}
                             />
+                             <FormItem>
+                                <FormLabel>{t('form.tags')}</FormLabel>
+                                <div className="flex flex-wrap gap-1 mt-1">
+                                    {user.tags && user.tags.split(',').map(tag => tag.trim() ? (
+                                        <Badge key={tag} variant="secondary">{tag.trim()}</Badge>
+                                    ) : null)}
+                                    {!user.tags && <p className="text-sm text-muted-foreground">{t('form.noTags')}</p>}
+                                </div>
+                            </FormItem>
+
                             <Button type="submit" disabled={isSubmitting}>
                                 {isSubmitting ? t('form.saving') : t('form.saveChanges')}
                             </Button>

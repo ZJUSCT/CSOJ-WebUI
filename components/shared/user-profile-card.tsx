@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { getInitials } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Edit3 } from 'lucide-react';
+import { Badge } from '../ui/badge';
 
 const fetcher = (url: string) => api.get(url).then(res => res.data.data);
 
@@ -37,6 +38,13 @@ export function UserProfileCard({ userId }: UserProfileCardProps) {
                     <Edit3 className="h-4 w-4 mt-1 text-muted-foreground shrink-0" />
                     <p className="italic break-words whitespace-pre-wrap">{user.signature}</p>
                 </div>
+            )}
+            {user.tags && (
+                 <div className="flex flex-wrap gap-1">
+                     {user.tags.split(',').map(tag => tag.trim() ? (
+                         <Badge key={tag} variant="secondary">{tag.trim()}</Badge>
+                     ) : null)}
+                 </div>
             )}
         </div>
     );

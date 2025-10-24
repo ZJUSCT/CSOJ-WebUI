@@ -7,6 +7,7 @@ export interface User {
   nickname: string;
   signature: string;
   avatar_url: string;
+  tags: string;
 }
 
 export interface Announcement {
@@ -104,6 +105,7 @@ export interface LeaderboardEntry {
   username: string;
   nickname: string;
   avatar_url: string;
+  tags: string;
   disable_rank: boolean;
   total_score: number;
   problem_scores: Record<string, number>;

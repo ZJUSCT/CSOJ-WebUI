@@ -1,8 +1,7 @@
 "use client";
 import { useSearchParams } from 'next/navigation';
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
 import useSWR, { useSWRConfig } from 'swr';
-import { useTranslations } from 'next-intl'; // Import useTranslations
 import { Contest, Problem, LeaderboardEntry, TrendEntry, ScoreHistoryPoint } from '@/lib/types';
 import api from '@/lib/api';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -11,7 +10,7 @@ import Link from 'next/link';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
 import { zhCN, enUS, Locale } from "date-fns/locale";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Calendar, Clock, BookOpen, Trophy, CheckCircle, Edit3, Loader2, Swords, CheckCheck } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
@@ -25,6 +24,7 @@ import EchartsTrendChart from '@/components/charts/echarts-trend-chart';
 import { AnnouncementsCard } from '@/components/contests/announcements-card';
 import { DifficultyBadge } from '@/components/contests/difficulty-badge';
 import UserScoreCard from '@/components/contests/user-score-card';
+import { Label } from "@/components/ui/label";
 import { Search, List } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
@@ -60,7 +60,7 @@ function ContestTimeline({ contest }: { contest: Contest }) {
     const margin = totalDuration * marginRatio / (1 - 2 * marginRatio);
     const axisStart = startTime - margin;
     const axisEnd = endTime + margin;
-    
+
     // Position Calculation Helper
     const getPositionPercent = (time: number) => {
         if (axisEnd === axisStart) return 0; // Avoid division by zero
@@ -104,7 +104,7 @@ function ContestTimeline({ contest }: { contest: Contest }) {
         backgroundColor: barColor,
         transition: 'width 1s linear, background-color 1s linear'
     };
-    
+
     return (
         <div className="pt-2 pb-2">
             <div className="relative h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
@@ -113,7 +113,7 @@ function ContestTimeline({ contest }: { contest: Contest }) {
                     className="h-full absolute"
                     style={barStyle}
                 />
-                
+
                 {/* Start time vertical marker */}
                 <div
                     className="absolute top-0 h-full w-0.5 bg-gray-500 opacity-75"
@@ -174,7 +174,7 @@ function ContestCard({ contest }: { contest: Contest }) {
     const endTime = new Date(contest.endtime);
     const hasStarted = now >= startTime;
     const hasEnded = now > endTime;
-    
+
     let statusText = t('status.upcoming');
     if (hasStarted && !hasEnded) statusText = t('status.ongoing');
     if (hasEnded) statusText = t('status.finished');
@@ -386,7 +386,7 @@ function ContestTrend({ contest }: { contest: Contest }) {
             </Card>
         );
     }
-    
+
     return (
         <Card>
             <CardHeader>
@@ -394,8 +394,8 @@ function ContestTrend({ contest }: { contest: Contest }) {
                 <CardDescription>{t('trend.description')}</CardDescription>
             </CardHeader>
             <CardContent className="h-[500px] w-full">
-                <EchartsTrendChart 
-                    trendData={trendData} 
+                <EchartsTrendChart
+                    trendData={trendData}
                     contestStartTime={contest.starttime}
                     contestEndTime={contest.endtime}
                 />
@@ -404,9 +404,7 @@ function ContestTrend({ contest }: { contest: Contest }) {
     );
 }
 
-
 function LeaderboardRow({ entry, rank, problemIds, isRankDisabled }: { entry: LeaderboardEntry, rank: number | string, problemIds: string[], isRankDisabled: boolean }) {
-    // No translation needed for LeaderboardRow itself
     const getRankColor = (rank: number | string) => {
         if (rank === 1) return 'text-yellow-400';
         if (rank === 2) return 'text-gray-400';
@@ -430,7 +428,12 @@ function LeaderboardRow({ entry, rank, problemIds, isRankDisabled }: { entry: Le
                                 <AvatarImage src={entry.avatar_url} alt={entry.nickname} />
                                 <AvatarFallback>{getInitials(entry.nickname)}</AvatarFallback>
                             </Avatar>
-                            <span className="font-medium">{entry.nickname}</span>
+                            <div className="flex flex-col">
+                                <span className="font-medium">{entry.nickname}</span>
+                                <div className="flex flex-wrap gap-1 mt-1">
+                                    {entry.tags && entry.tags.split(',').map(tag => tag.trim() ? <Badge key={tag} variant="secondary" className="text-xs">{tag.trim()}</Badge> : null)}
+                                </div>
+                            </div>
                         </div>
                     </HoverCardTrigger>
                     <HoverCardContent className="w-80">
@@ -450,13 +453,46 @@ function LeaderboardRow({ entry, rank, problemIds, isRankDisabled }: { entry: Le
 
 function ContestLeaderboard({ contestId }: { contestId: string }) {
     const t = useTranslations('contests');
+    // State for tag filtering
+    const [selectedTags, setSelectedTags] = useState<string[]>([]);
+
+    // Fetch contest details to get problem IDs
     const { data: contest, error: contestError, isLoading: isContestLoading } = useSWR<Contest>(`/contests/${contestId}`, fetcher);
-    const { data: leaderboard, error: leaderboardError, isLoading: isLeaderboardLoading } = useSWR<LeaderboardEntry[]>(`/contests/${contestId}/leaderboard`, fetcher, { refreshInterval: 15000 });
+
+    // Fetch unfiltered leaderboard only to derive available tags
+    const { data: leaderboardUnfiltered, isLoading: isLoadingUnfiltered } = useSWR<LeaderboardEntry[]>(`/contests/${contestId}/leaderboard`, fetcher, { refreshInterval: 60000 }); // Slow refresh is fine
+
+    const availableTags = useMemo(() => {
+        if (!leaderboardUnfiltered) return [];
+        const allTags = new Set<string>();
+        leaderboardUnfiltered.forEach(entry => {
+            if (entry.tags) {
+                entry.tags.split(',').forEach(tag => {
+                    const trimmedTag = tag.trim();
+                    if (trimmedTag) allTags.add(trimmedTag);
+                });
+            }
+        });
+        return Array.from(allTags).sort().map(tag => ({ value: tag, label: tag }));
+    }, [leaderboardUnfiltered]);
+
+    // Toggle tag selection
+    const toggleTag = (tagValue: string) => {
+        setSelectedTags(prev =>
+            prev.includes(tagValue)
+                ? prev.filter(t => t !== tagValue)
+                : [...prev, tagValue]
+        );
+    };
+
+    // Fetch leaderboard data with the selected tags filter
+    const tagsQuery = selectedTags.join(',');
+    const { data: leaderboard, error: leaderboardError, isLoading: isLeaderboardLoading } = useSWR<LeaderboardEntry[]>(`/contests/${contestId}/leaderboard?tags=${tagsQuery}`, fetcher, { refreshInterval: 15000 });
 
     const isLoading = isContestLoading || isLeaderboardLoading;
     if (isLoading) return <Skeleton className="h-64 w-full" />;
     if (contestError || leaderboardError) return <div>{t('leaderboard.loadFail')}</div>;
-    if (!leaderboard || leaderboard.length === 0) return <div>{t('leaderboard.none')}</div>;
+    if (!leaderboard || (leaderboard.length === 0 && selectedTags.length === 0)) return <div>{t('leaderboard.none')}</div>; // Only show 'none' if no tags selected and board empty
     if (!contest) return <div>{t('leaderboard.contestDetailsFail')}</div>;
 
     const problemIds = contest.problem_ids;
@@ -471,6 +507,24 @@ function ContestLeaderboard({ contestId }: { contestId: string }) {
                 <CardTitle>{t('leaderboard.title')}</CardTitle>
             </CardHeader>
             <CardContent>
+                <div className="mb-4 flex items-center gap-2">
+                    <Label className="shrink-0 font-semibold">{t('leaderboard.filterTags')}:</Label>
+                     {isLoadingUnfiltered ? <Skeleton className="h-6 w-32" /> : (
+                         <div className="flex flex-wrap gap-2">
+                             {availableTags.length === 0 && <span className="text-sm text-muted-foreground">{t('leaderboard.noTags')}</span>}
+                             {availableTags.map(tag => (
+                                 <Badge
+                                     key={tag.value}
+                                     variant={selectedTags.includes(tag.value) ? "default" : "outline"}
+                                     onClick={() => toggleTag(tag.value)}
+                                     className="cursor-pointer"
+                                 >
+                                     {tag.label}
+                                 </Badge>
+                             ))}
+                         </div>
+                     )}
+                </div>
                 <Table>
                     <TableHeader>
                         <TableRow>
@@ -502,10 +556,10 @@ function ContestLeaderboard({ contestId }: { contestId: string }) {
                             }
 
                             return (
-                                <LeaderboardRow 
-                                    key={entry.user_id} 
-                                    entry={entry} 
-                                    rank={displayRank} 
+                                <LeaderboardRow
+                                    key={entry.user_id}
+                                    entry={entry}
+                                    rank={displayRank}
                                     problemIds={problemIds}
                                     isRankDisabled={isRankDisabled} />
                             );
@@ -542,7 +596,7 @@ function ContestDetailView({ contestId, view }: { contestId: string, view: strin
             toast({ variant: "destructive", title: t('registration.failTitle'), description: error.response?.data?.message || t('registration.unexpectedError') });
         }
     };
-    
+
     const now = new Date();
     const canRegister = contest && now >= new Date(contest.starttime) && now <= new Date(contest.endtime);
 
@@ -584,7 +638,7 @@ function ContestDetailView({ contestId, view }: { contestId: string, view: strin
                     )
                 )}
             </div>
-            
+
             <div className="grid gap-8 lg:grid-cols-4 items-start">
                 <div className="lg:col-span-3 space-y-6">
                     <Tabs value={view} className="w-full">
@@ -611,7 +665,7 @@ function ContestDetailView({ contestId, view }: { contestId: string, view: strin
 
                 <div className="space-y-6 lg:sticky lg:top-20">
                      <UserScoreCard contestId={contestId} />
-                     <AnnouncementsCard contestId={contestId} /> 
+                     <AnnouncementsCard contestId={contestId} />
                 </div>
             </div>
         </div>
