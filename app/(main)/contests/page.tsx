@@ -436,7 +436,8 @@ function LeaderboardRow({ entry, rank, problemIds, isRankDisabled }: { entry: Le
                                     if (!trimmedTag) return null;
                                     return (
                                         <Badge 
-                                            key={trimmedTag} 
+                                            key={trimmedTag}
+                                            variant="flat" 
                                             className={cn(
                                                 "text-xs border-transparent",
                                                 getTagColorClasses(trimmedTag)
