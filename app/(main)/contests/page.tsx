@@ -19,7 +19,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import { UserProfileCard } from '@/components/shared/user-profile-card';
-import { getInitials, cn } from '@/lib/utils';
+import { getInitials, cn, getTagColorClasses } from '@/lib/utils';
 import EchartsTrendChart from '@/components/charts/echarts-trend-chart';
 import { AnnouncementsCard } from '@/components/contests/announcements-card';
 import { DifficultyBadge } from '@/components/contests/difficulty-badge';
@@ -424,17 +424,31 @@ function LeaderboardRow({ entry, rank, problemIds, isRankDisabled }: { entry: Le
                 <HoverCard>
                     <HoverCardTrigger asChild>
                         <div className="flex items-center gap-3 cursor-pointer">
-                            <Avatar className="h-8 w-8">
-                                <AvatarImage src={entry.avatar_url} alt={entry.nickname} />
-                                <AvatarFallback>{getInitials(entry.nickname)}</AvatarFallback>
-                            </Avatar>
-                            <div className="flex flex-row items-center flex-wrap">
-                                <span className="font-medium">{entry.nickname}</span>
-                                <div className="flex flex-wrap gap-1 mt-1">
-                                    {entry.tags && entry.tags.split(',').map(tag => tag.trim() ? <Badge key={tag} variant="secondary" className="text-xs">{tag.trim()}</Badge> : null)}
-                                </div>
+                        <Avatar className="h-8 w-8">
+                            <AvatarImage src={entry.avatar_url} alt={entry.nickname} />
+                            <AvatarFallback>{getInitials(entry.nickname)}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex flex-row items-center flex-wrap gap-3">
+                            <span className="font-medium">{entry.nickname}</span>
+                            <div className="flex flex-wrap gap-1">
+                                {entry.tags && entry.tags.split(',').map(tag => {
+                                    const trimmedTag = tag.trim();
+                                    if (!trimmedTag) return null;
+                                    return (
+                                        <Badge 
+                                            key={trimmedTag} 
+                                            className={cn(
+                                                "text-xs border-transparent",
+                                                getTagColorClasses(trimmedTag)
+                                            )}
+                                        >
+                                            {trimmedTag}
+                                        </Badge>
+                                    );
+                                })}
                             </div>
                         </div>
+                    </div>
                     </HoverCardTrigger>
                     <HoverCardContent className="w-80">
                         <UserProfileCard userId={entry.user_id} />
