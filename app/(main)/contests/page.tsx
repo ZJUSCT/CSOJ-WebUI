@@ -428,7 +428,7 @@ function LeaderboardRow({ entry, rank, problemIds, isRankDisabled }: { entry: Le
                                 <AvatarImage src={entry.avatar_url} alt={entry.nickname} />
                                 <AvatarFallback>{getInitials(entry.nickname)}</AvatarFallback>
                             </Avatar>
-                            <div className="flex flex-col">
+                            <div className="flex flex-row items-center flex-wrap">
                                 <span className="font-medium">{entry.nickname}</span>
                                 <div className="flex flex-wrap gap-1 mt-1">
                                     {entry.tags && entry.tags.split(',').map(tag => tag.trim() ? <Badge key={tag} variant="secondary" className="text-xs">{tag.trim()}</Badge> : null)}
