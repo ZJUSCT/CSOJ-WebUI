@@ -502,12 +502,13 @@ function ContestLeaderboard({ contestId }: { contestId: string }) {
 
     // Fetch leaderboard data with the selected tags filter
     const tagsQuery = selectedTags.join(',');
-    const { data: leaderboard, error: leaderboardError, isLoading: isLeaderboardLoading } = useSWR<LeaderboardEntry[]>(`/contests/${contestId}/leaderboard?tags=${tagsQuery}`, fetcher, { refreshInterval: 15000 });
+    const { data: leaderboardData, error: leaderboardError, isLoading: isLeaderboardLoading } = useSWR<LeaderboardEntry[]>(`/contests/${contestId}/leaderboard?tags=${tagsQuery}`, fetcher, { refreshInterval: 15000 });
+    const leaderboard = leaderboardData ?? [];
 
     const isLoading = isContestLoading || isLeaderboardLoading;
     if (isLoading) return <Skeleton className="h-64 w-full" />;
     if (contestError || leaderboardError) return <div>{t('leaderboard.loadFail')}</div>;
-    if (!leaderboard || (leaderboard.length === 0 && selectedTags.length === 0)) return <div>{t('leaderboard.none')}</div>; // Only show 'none' if no tags selected and board empty
+    if (leaderboard.length === 0 && selectedTags.length === 0) return <div>{t('leaderboard.none')}</div>;
     if (!contest) return <div>{t('leaderboard.contestDetailsFail')}</div>;
 
     const problemIds = contest.problem_ids;
