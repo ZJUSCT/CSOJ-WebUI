@@ -2,6 +2,8 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import rehypeMathjax from 'rehype-mathjax';
+import rehypeSlug from 'rehype-slug';
+import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 import { useState, useEffect } from 'react';
 import api from '@/lib/api';
 import { cn } from '@/lib/utils';
@@ -56,7 +58,11 @@ export default function MarkdownViewer({ content, assetContext, assetContextId }
         <div className={cn("prose prose-tight dark:prose-invert max-w-none leading-normal")}>
             <ReactMarkdown
                 remarkPlugins={[remarkGfm, remarkMath]}
-                rehypePlugins={[rehypeMathjax]}
+                rehypePlugins={[
+                    rehypeMathjax,
+                    rehypeSlug,
+                    rehypeAutolinkHeadings
+                ]}
             >
                 {processedContent}
             </ReactMarkdown>
